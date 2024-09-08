@@ -1,4 +1,12 @@
-# Smart Inventory Tagging
+## Device
+
+`device` has the code for the Raspberry Pi. 
+
+`docker-compose run --build device` gives an interactive shell.
+
+## App
+
+`app` has the code for the frontend/backend/database. 
 
 Important paths
 ```
