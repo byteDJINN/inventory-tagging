@@ -1,4 +1,4 @@
 import pytesseract
 
-text = pytesseract.image_to_string('img6.jpg')
+text = pytesseract.image_to_string('img.png')
 print(text)
