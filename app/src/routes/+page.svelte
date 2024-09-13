@@ -1,24 +1,37 @@
 <script lang="ts">
-
     import { onMount } from 'svelte';
-    
-    let items: string[] = [];
+
+    interface Item {
+        base64Image: string;
+        name: string;
+        description: string;
+        tags: string[];
+    }
+
+    let items: Item[] = [];
 
     onMount(async () => {
-        // request its own url /api
         const res = await fetch('/api/get-items');
         items = await res.json();
-        
         console.log(items);
     });
-    
 </script>
 
-
-<div class="mx-2">
-    <ul>
+<div class="container mx-auto p-4">
+    <h1 class="text-2xl font-bold mb-4">Inventory Items</h1>
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {#each items as item}
-            <li>{item}</li>
+            <div class="bg-white shadow-md rounded-lg overflow-hidden flex flex-col">
+                <img src={'data:image/jpeg;base64,' + item.base64Image} alt={item.name} class="w-full h-48 object-cover" />
+                <div class="p-4 flex-grow">
+                    <h2 class="text-xl font-semibold">{item.name}</h2>
+                    <p class="text-gray-600 mt-2">{item.description}</p>
+                </div>
+                <div class="p-4 mt-auto flex justify-between items-center">
+                    <span class="text-lg font-bold">Quantity:</span>
+                    <span class="text-lg font-bold">{item.tags.length}</span>
+                </div>
+            </div>
         {/each}
-    </ul>
+    </div>
 </div>

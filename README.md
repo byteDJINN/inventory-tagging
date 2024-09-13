@@ -1,5 +1,4 @@
 ## Quick Commands
-
 ```bash
 cd app
 docker-compose up --build
@@ -71,14 +70,11 @@ db.sqlite
         +page.svelte
 ```
 
-To run, use `docker-compose up --build` from within `/app`. This will take longer the first time. Once it is running you should be able to change any code and it will auto update instantly. 
+### Running
 
-Testing the routes that the RPi will use to send and receive information. 
-
-```bash
-# adds another item
-curl -X POST http://localhost:5173/api/add-item -H "Content-Type: application/json" -d '{"value": 42}'
-
-# returns all the items
-curl http://localhost:5173/api/get-items
+First you need to add a .env.ts file in /app/src/lib/server with the following:
 ```
+export const OPENAI_API_KEY = "...";
+```
+
+To run, use `docker-compose up --build` from within `/app`. This will take longer the first time. Once it is running you should be able to change any code and it will auto update instantly. 

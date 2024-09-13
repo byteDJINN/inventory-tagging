@@ -9,8 +9,8 @@ ENV PYTHONUNBUFFERED=1
 RUN apt-get update
 RUN apt-get install -y python3 python3-pip
 RUN pip3 install --upgrade pip
-RUN pip3 install pytesseract
-RUN apt-get install -y tesseract-ocr
+RUN pip3 install openai
+RUN pip3 install requests
 
 # Set up a working directory
 WORKDIR /device
