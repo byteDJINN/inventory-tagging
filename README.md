@@ -17,11 +17,19 @@ Docker will be used for development. This allows everyone to run the code within
 
 This will read data from the sensors (scanner and camera). 
 
-It will probably run a single code file which will contain all the logic for the device. 
+It will run a flask server locally creating a UI for use when scanning. We will connect the RPi to a monitor allowing the user to view the localhost UI webpage from the RPi. 
+
+A user may take a photo of a tag, then scan some number of RFID tags, as they scan them they may appear on the webpage, and when they are finished they can submit them using a button the website, where they are pushed (via the cloud server) into the inventory database. 
 
 The RPi will need internet access (WiFi) since it will send requests to the server through GET/POST URL requests. 
 
 ### Server
+
+This is the cloud analytics and database for the service. It will host a website which can show all the inventory and allow searching through it. 
+
+It will have a database storing all the information about items including their names and RFID tag IDs. 
+
+It will also have some API routes for the RPi (device) service to use to update the database. For example, there may be a route to add a bunch of items into the database, and another route to mark some items as sold.
 
 #### SvelteKit
 
