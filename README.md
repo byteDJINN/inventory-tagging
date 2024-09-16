@@ -25,7 +25,7 @@ The RPi will need internet access (WiFi) since it will send requests to the serv
 
 ### Server
 
-This is the cloud analytics and database for the service. It will host a website which can show all the inventory and allow searching through it. 
+This is the cloud analytics and database for the service. It will host a live publicly available website which can show all the inventory and allow searching through it. 
 
 It will have a database storing all the information about items including their names and RFID tag IDs. 
 
