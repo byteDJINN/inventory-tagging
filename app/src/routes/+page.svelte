@@ -2,10 +2,9 @@
     import { onMount } from 'svelte';
 
     interface Item {
-        base64Image: string;
+        id: number;
         name: string;
-        description: string;
-        tags: string[];
+        tags: { id: number }[];
     }
 
     let items: Item[] = [];
@@ -22,14 +21,12 @@
     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {#each items as item}
             <div class="bg-white shadow-md rounded-lg overflow-hidden flex flex-col">
-                <img src={'data:image/jpeg;base64,' + item.base64Image} alt={item.name} class="w-full h-48 object-cover" />
                 <div class="p-4 flex-grow">
                     <h2 class="text-xl font-semibold">{item.name}</h2>
-                    <p class="text-gray-600 mt-2">{item.description}</p>
                 </div>
                 <div class="p-4 mt-auto flex justify-between items-center">
-                    <span class="text-lg font-bold">Quantity:</span>
-                    <span class="text-lg font-bold">{item.tags.length}</span>
+                    <span class="text-smfont-bold">Quantity:</span>
+                    <span class="text-md font-bold">{item.tags.length}</span>
                 </div>
             </div>
         {/each}
