@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPi Button Press Counter</title>
+</head>
+
+<body>
+    <h1>Raspberry Pi Button Press Counter</h1>
+    <p>Button press count: <span id="button-count">0</span></p>
+
+    <script>
+        function updateButtonCount() {
+            fetch('/api/button-count')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('button-count').textContent = data.count;
+                });
+        }
+
+        // Update count every second
+        setInterval(updateButtonCount, 1000);
+
+        // Initial update
+        updateButtonCount();
+    </script>
+</body>
+
+</html>

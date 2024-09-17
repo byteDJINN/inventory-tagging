@@ -11,6 +11,9 @@ RUN apt-get install -y python3 python3-pip
 RUN pip3 install --upgrade pip
 RUN pip3 install openai
 RUN pip3 install requests
+RUN pip3 install Flask
+RUN pip3 install pytesseract
+RUN pip3 install RPi.GPIO
 
 # Set up a working directory
 WORKDIR /device
