@@ -1,4 +1,5 @@
 # Flask server
+# python app.py & python GPIO_handler.py &
 
 from flask import Flask, render_template, jsonify
 

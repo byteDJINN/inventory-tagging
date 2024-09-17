@@ -8,6 +8,7 @@ ENV PYTHONUNBUFFERED=1
 # Install Python and tesseract-ocr
 RUN apt-get update
 RUN apt-get install -y python3 python3-pip
+RUN apt-get install -y net-tools
 RUN pip3 install --upgrade pip
 RUN pip3 install openai
 RUN pip3 install requests
