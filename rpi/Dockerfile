@@ -1,0 +1,26 @@
+# Use the official Debian image
+FROM debian:bullseye-slim
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Install Python and tesseract-ocr
+RUN apt-get update
+RUN apt-get install -y python3 python3-pip
+RUN apt-get install -y net-tools
+RUN pip3 install --upgrade pip
+RUN pip3 install openai
+RUN pip3 install requests
+RUN pip3 install Flask
+RUN pip3 install pytesseract
+RUN pip3 install RPi.GPIO
+
+# Set up a working directory
+WORKDIR /rpi
+
+# Copy application code
+COPY . .
+
+# Default command: drop into a bash shell
+CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0"]

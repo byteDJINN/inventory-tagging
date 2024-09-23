@@ -5,8 +5,8 @@ docker-compose up --build
 ```
 
 ```bash
-cd device
-docker-compose run --build device
+cd rpi
+docker-compose run --build rpi
 ```
 
 ## Architecture
@@ -29,7 +29,7 @@ This is the cloud analytics and database for the service. It will host a live pu
 
 It will have a database storing all the information about items including their names and RFID tag IDs. 
 
-It will also have some API routes for the RPi (device) service to use to update the database. For example, there may be a route to add a bunch of items into the database, and another route to mark some items as sold.
+It will also have some API routes for the RPi (rpi) service to use to update the database. For example, there may be a route to add a bunch of items into the database, and another route to mark some items as sold.
 
 #### SvelteKit
 
@@ -53,9 +53,9 @@ TailwindCSS Documentation: https://tailwindcss.com/docs/utility-first
 
 ## Raspberry Pi
 
-`device` has the code for the Raspberry Pi. 
+`rpi` has the code for the Raspberry Pi. 
 
-`docker-compose run --build device` gives an interactive shell.
+`docker-compose run --build rpi` gives an interactive shell.
 
 You will be able to add and edit all the files in VSCode, and they will automatically change within the container. 
 
