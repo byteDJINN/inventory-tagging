@@ -1,5 +1,5 @@
 services:
-  device:
+  rpi:
     build:
       context: .
       dockerfile: Dockerfile

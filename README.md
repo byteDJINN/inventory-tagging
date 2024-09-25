@@ -6,7 +6,7 @@ docker-compose up --build
 
 ```bash
 cd device
-docker-compose run --build device
+docker-compose run --build rpi
 ```
 
 ## Architecture
@@ -53,15 +53,15 @@ TailwindCSS Documentation: https://tailwindcss.com/docs/utility-first
 
 ## Raspberry Pi
 
-`device` has the code for the Raspberry Pi. 
+`rpi` has the code for the Raspberry Pi. 
 
-`docker-compose run --build device` gives an interactive shell.
+`docker-compose run --build rpi` gives an interactive shell.
 
 You will be able to add and edit all the files in VSCode, and they will automatically change within the container. 
 
 ## Server
 
-`app` has the code for the frontend/backend/database. 
+`cloud` has the code for the frontend/backend/database. 
 
 Important paths
 ```
@@ -80,9 +80,4 @@ db.sqlite
 
 ### Running
 
-First you need to add a .env.ts file in /app/src/lib/server with the following:
-```
-export const OPENAI_API_KEY = "...";
-```
-
-To run, use `docker-compose up --build` from within `/app`. This will take longer the first time. Once it is running you should be able to change any code and it will auto update instantly. 
+To run, use `docker-compose up --build` from within `/cloud`. This will take longer the first time. Once it is running you should be able to change any code and it will auto update instantly. 
