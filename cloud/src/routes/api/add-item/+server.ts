@@ -16,3 +16,4 @@ export const POST: RequestHandler = async ({ request }: { request: Request }) =>
 };
 
 
+export const OPTIONS: RequestHandler = () => new Response(null);

@@ -3,13 +3,13 @@ import requests
 import time
 
 # Set up GPIO
-GPIO.setmode(GPIO.BCM)
-BUTTON_PIN = 18  # Change this to your actual button pin
+GPIO.setmode(GPIO.BOARD) # BOARD or BCM
+BUTTON_PIN = 12  # Change this to your actual button pin in BOARD numbering
 GPIO.setup(BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 API_URL = "http://localhost:5000/api/button-press"
 
-def button_callback(channel):
+def button_press():
     try:
         response = requests.post(API_URL)
         if response.status_code == 200:
@@ -19,12 +19,16 @@ def button_callback(channel):
     except requests.RequestException as e:
         print(f"Error sending request: {e}")
 
-GPIO.add_event_detect(BUTTON_PIN, GPIO.FALLING, callback=button_callback, bouncetime=200)
-
 print("GPIO handler running. Press CTRL+C to exit.")
 try:
+    button_state = GPIO.input(BUTTON_PIN)
     while True:
-        time.sleep(1)
+        new_state = GPIO.input(BUTTON_PIN)
+        if new_state != button_state:
+            if new_state == GPIO.LOW:
+                button_press()
+            button_state = new_state
+        time.sleep(0.5)  # Small delay to prevent excessive CPU usage
 except KeyboardInterrupt:
     GPIO.cleanup()
     print("GPIO handler stopped.")
