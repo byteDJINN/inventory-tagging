@@ -1,31 +1,44 @@
 <script lang="ts">
 	import ForgotPassword from '../utils/authentication/ForgotPassword.svelte';
-	import { Label, Input, Checkbox, A } from 'flowbite-svelte';
-	const onSubmit = (e: Event) => {
-		const formData = new FormData(e.target as HTMLFormElement);
+	import { Label, Input, Alert } from 'flowbite-svelte';
+	import { pb } from '$lib/pocketbase';
 
-		const data: Record<string, string | File> = {};
-		for (const field of formData.entries()) {
-			const [key, value] = field;
-			data[key] = value;
+	let email = '';
+	let successMessage = '';
+	let errorMessage = '';
+
+	const onSubmit = async (e: Event) => {
+		e.preventDefault();
+		successMessage = '';
+		errorMessage = '';
+
+		try {
+			await pb.collection('users').requestPasswordReset(email);
+			successMessage = 'Password reset instructions have been sent to your email.';
+		} catch (err) {
+			console.error('Error:', err);
+			errorMessage = 'An error occurred. Please try again.';
 		}
-		console.log(data);
 	};
-
 </script>
 
-
 <ForgotPassword on:submit={onSubmit}>
+	{#if successMessage}
+		<Alert color="green" class="mb-4">{successMessage}</Alert>
+	{/if}
+	{#if errorMessage}
+		<Alert color="red" class="mb-4">{errorMessage}</Alert>
+	{/if}
 	<div>
 		<Label for="email" class="mb-2">Your email</Label>
 		<Input
 			type="email"
 			name="email"
 			id="email"
+			bind:value={email}
 			placeholder="name@company.com"
 			required
 			class="border outline-none"
 		/>
 	</div>
-	<Checkbox class="gap-1">I accept the <A href="/">Terms and Conditions</A></Checkbox>
 </ForgotPassword>

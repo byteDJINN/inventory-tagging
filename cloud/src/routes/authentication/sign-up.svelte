@@ -1,6 +1,8 @@
 <script lang="ts">
-	import { Label, Input } from 'flowbite-svelte';
+	import { Label, Input, Alert } from 'flowbite-svelte';
 	import SignUp from '../utils/authentication/SignUp.svelte';
+	import { pb } from '$lib/pocketbase';
+	import { goto } from '$app/navigation';
 
 	const title = 'Create a Free Account';
 	const site = {
@@ -15,17 +17,36 @@
 	const termsLink = '/';
 	const loginLink = 'sign-in';
 	const labelClass = 'space-y-2 dark:text-white';
-	const onSubmit = (e: Event) => {
-		const formData = new FormData(e.target as HTMLFormElement);
 
-		const data: Record<string, string | File> = {};
-		for (const field of formData.entries()) {
-			const [key, value] = field;
-			data[key] = value;
+	let email = '';
+	let password = '';
+	let confirmPassword = '';
+	let errorMessage = '';
+
+	const onSubmit = async (e: Event) => {
+		e.preventDefault();
+		errorMessage = '';
+
+		if (password !== confirmPassword) {
+			errorMessage = 'Passwords do not match';
+			return;
 		}
-		console.log(data);
-	};
 
+		try {
+			const user = await pb.collection('users').create({
+				email,
+				password,
+				passwordConfirm: confirmPassword,
+			});
+			
+			await pb.collection('users').requestVerification(email);
+			
+			goto('/authentication/verify-email?email=' + encodeURIComponent(email));
+		} catch (err) {
+			console.error('Error:', err);
+			errorMessage = err.message || 'An error occurred during sign up';
+		}
+	};
 </script>
 
 <SignUp
@@ -38,12 +59,16 @@
 	{loginLink}
 	on:submit={onSubmit}
 >
+	{#if errorMessage}
+		<Alert color="red" class="mb-4">{errorMessage}</Alert>
+	{/if}
 	<div>
 		<Label class={labelClass}>
 			<span>Your email</span>
 			<Input
 				type="email"
 				name="email"
+				bind:value={email}
 				placeholder="name@company.com"
 				required
 				class="border outline-none dark:border-gray-600 dark:bg-gray-700"
@@ -56,6 +81,7 @@
 			<Input
 				type="password"
 				name="password"
+				bind:value={password}
 				placeholder="••••••••"
 				required
 				class="border outline-none dark:border-gray-600 dark:bg-gray-700"
@@ -68,6 +94,7 @@
 			<Input
 				type="password"
 				name="confirm-password"
+				bind:value={confirmPassword}
 				placeholder="••••••••"
 				required
 				class="border outline-none dark:border-gray-600 dark:bg-gray-700"
