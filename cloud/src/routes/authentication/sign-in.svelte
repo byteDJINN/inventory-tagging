@@ -33,7 +33,7 @@
 			if (authData.record.verified) {
 				goto('/dashboard'); // Redirect to dashboard or home page
 			} else {
-				errorMessage = 'Please verify your email before logging in.';
+				errorMessage = 'Please verify your email before logging in. Check your inbox for the verification link.';
 			}
 		} catch (err) {
 			console.error('Error:', err);

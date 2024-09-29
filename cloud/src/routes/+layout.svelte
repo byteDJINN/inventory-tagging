@@ -1,7 +1,18 @@
 <script>
-	import modeobserver from './utils/modeobserver';
 	import { onMount } from 'svelte';
+	import { checkAuth } from '$lib/auth';
+	import { writable } from 'svelte/store';
 
-	onMount(modeobserver);
+	const isLoading = writable(true);
+
+	onMount(async () => {
+		await checkAuth();
+		isLoading.set(false);
+	});
 </script>
-<slot />
+
+{#if $isLoading}
+<div></div>
+{:else}
+	<slot />
+{/if}

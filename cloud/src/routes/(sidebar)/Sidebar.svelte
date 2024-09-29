@@ -25,7 +25,7 @@
 		TableColumnSolid
 	} from 'flowbite-svelte-icons';
 
-	export let drawerHidden: boolean = false;
+	export let drawerHidden: boolean = true;
 
 	const closeDrawer = () => {
 		drawerHidden = true;
@@ -84,8 +84,6 @@
 				'Sign in': '/authentication/sign-in',
 				'Sign up': '/authentication/sign-up',
 				'Forgot password': '/authentication/forgot-password',
-				'Reset password': '/authentication/reset-password',
-				'Profile lock': '/authentication/profile-lock'
 			}
 		},
 		{

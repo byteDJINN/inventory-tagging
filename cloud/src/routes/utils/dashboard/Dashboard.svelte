@@ -7,7 +7,6 @@
 	import Stats from './Stats.svelte';
 
 	import users from '../graphs/users';
-	import DarkChart from '../widgets/DarkChart.svelte';
 	import { onMount } from 'svelte';
 	// import chart_options_func from '../../routes/(sidebar)/dashboard/chart_options';
   import chart_options_func from '../../(sidebar)/dashboard/chart_options';
@@ -33,11 +32,6 @@
 			dark = !!ev.detail;
 		}
 	}
-
-	onMount(() => {
-		document.addEventListener('dark', handler);
-		return () => document.removeEventListener('dark', handler);
-	});
 </script>
 
 <div class="mt-px space-y-4">
@@ -65,7 +59,7 @@
 				</p>
 				<Change size="sm" value={-3.4} since="Since last month" />
 			</div>
-			<DarkChart configFunc={users} class="w-full" />
+			<Chart configFunc={users} class="w-full" />
 		</Card>
 		<Card horizontal class="items-center justify-between" size="xl">
 			<div class="w-full">
@@ -75,7 +69,7 @@
 				</p>
 				<Change size="sm" value={-3.4} since="Since last month" class="w-full" />
 			</div>
-			<DarkChart configFunc={(d)=>{const x = users(d); x.plotOptions.bar.horizontal=true; return x}} class="w-full"/>
+			<Chart configFunc={(d)=>{const x = users(d); x.plotOptions.bar.horizontal=true; return x}} class="w-full"/>
 		</Card>
 	</div>
 	<div class="grid grid-cols-1 gap-4 xl:grid-cols-2">

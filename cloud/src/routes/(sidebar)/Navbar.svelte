@@ -3,7 +3,6 @@
 	import AppsMenu from '../utils/widgets/AppsMenu.svelte';
 	import UserMenu from '../utils/widgets/UserMenu.svelte';
 	import {
-		DarkMode,
 		Dropdown,
 		DropdownItem,
 		NavBrand,
@@ -18,7 +17,7 @@
 	import Users from '../data/users.json';
 
 	export let fluid = true;
-	export let drawerHidden = false;
+	export let drawerHidden = true;
 	export let list = false;
 </script>
 
@@ -66,7 +65,6 @@
 		<div class="ms-auto flex items-center text-gray-500 dark:text-gray-400 sm:order-2">
 			<Notifications />
 			<AppsMenu />
-			<DarkMode />
 			<UserMenu {...Users[4]} />
 		</div>
 	</NavContainer>

@@ -22,6 +22,7 @@
 	let password = '';
 	let confirmPassword = '';
 	let errorMessage = '';
+	let successMessage = '';
 
 	const onSubmit = async (e: Event) => {
 		e.preventDefault();
@@ -41,7 +42,8 @@
 			
 			await pb.collection('users').requestVerification(email);
 			
-			goto('/authentication/verify-email?email=' + encodeURIComponent(email));
+			// Instead of redirecting, show a success message
+			successMessage = 'Account created successfully. Please check your email to verify your account before signing in.';
 		} catch (err) {
 			console.error('Error:', err);
 			errorMessage = err.message || 'An error occurred during sign up';
@@ -61,6 +63,9 @@
 >
 	{#if errorMessage}
 		<Alert color="red" class="mb-4">{errorMessage}</Alert>
+	{/if}
+	{#if successMessage}
+		<Alert color="green" class="mb-4">{successMessage}</Alert>
 	{/if}
 	<div>
 		<Label class={labelClass}>
