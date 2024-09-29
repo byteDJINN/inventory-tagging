@@ -17,7 +17,7 @@ RUN pip3 install pytesseract
 RUN pip3 install RPi.GPIO
 
 # Set up a working directory
-WORKDIR /device
+WORKDIR /rpi
 
 # Copy application code
 COPY . .

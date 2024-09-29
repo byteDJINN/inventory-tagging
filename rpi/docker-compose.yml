@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - .:/device
+      - .:/rpi
     stdin_open: true  # Keep STDIN open for interactive shell
     tty: true         # Allocate a pseudo-TTY for terminal
     entrypoint: /bin/bash

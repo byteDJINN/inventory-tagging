@@ -5,7 +5,7 @@ docker-compose up --build
 ```
 
 ```bash
-cd device
+cd rpi
 docker-compose run --build rpi
 ```
 
@@ -29,7 +29,7 @@ This is the cloud analytics and database for the service. It will host a live pu
 
 It will have a database storing all the information about items including their names and RFID tag IDs. 
 
-It will also have some API routes for the RPi (device) service to use to update the database. For example, there may be a route to add a bunch of items into the database, and another route to mark some items as sold.
+It will also have some API routes for the RPi (rpi) service to use to update the database. For example, there may be a route to add a bunch of items into the database, and another route to mark some items as sold.
 
 #### SvelteKit
 
