@@ -13,15 +13,9 @@
 
 	import { imagesPath } from '../../utils/variables';
 	import Users from '../../data/users.json';
-	import MetaTag from '../../utils/MetaTag.svelte';
 
-	const path: string = '/settings';
-  const description: string = 'Settings examaple - Flowbite Svelte Admin Dashboard';
-  const title: string = 'Flowbite Svelte Admin Dashboard - Settings';
-  const subtitle: string = 'Settings';
 </script>
 
-<MetaTag {path} {description} {title} {subtitle} />
 
 <main class="p-4">
 	<div class="grid grid-cols-1 space-y-2 dark:bg-gray-900 xl:grid-cols-3 xl:gap-3.5">

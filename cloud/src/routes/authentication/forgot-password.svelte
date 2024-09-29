@@ -1,7 +1,6 @@
 <script lang="ts">
 	import ForgotPassword from '../utils/authentication/ForgotPassword.svelte';
 	import { Label, Input, Checkbox, A } from 'flowbite-svelte';
-	import MetaTag from '../utils/MetaTag.svelte';
 	const onSubmit = (e: Event) => {
 		const formData = new FormData(e.target as HTMLFormElement);
 
@@ -13,13 +12,8 @@
 		console.log(data);
 	};
 
-	const path: string = '/authentication/forgot-password';
-  const description: string = 'Forgot password example - Flowbite Svelte Admin Dashboard';
-	const title: string = 'Flowbite Svelte Admin Dashboard - Forgot password';
-  const subtitle: string = 'Forgot password';
 </script>
 
-<MetaTag {path} {description} {title} {subtitle} />
 
 <ForgotPassword on:submit={onSubmit}>
 	<div>

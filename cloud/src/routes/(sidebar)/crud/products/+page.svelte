@@ -4,7 +4,6 @@
 	import type { ComponentType } from 'svelte';
 	import { sineIn } from 'svelte/easing';
 	import Products from '../../../data/product.json';
-	import MetaTag from '../../../utils/MetaTag.svelte';
 	import Delete from './Delete.svelte';
 	import Product from './Product.svelte';
 
@@ -16,18 +15,12 @@
 		hidden = !hidden;
 	};
 
-	const path: string = '/crud/products';
-  	const description: string = 'CRUD products examaple - Flowbite Svelte Admin Dashboard';
-	const title: string = 'Flowbite Svelte Admin Dashboard - CRUD Products';
-	const subtitle: string = 'CRUD Products';
 	let transitionParams = {
 		x: 320,
 		duration: 200,
 		easing: sineIn
 	};
 </script>
-
-<MetaTag {path} {description} {title} {subtitle} />
 
 
 <main class="relative h-full w-full overflow-y-auto bg-white dark:bg-gray-800">
