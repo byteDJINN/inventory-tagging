@@ -3,8 +3,7 @@
 version: '3.8'
 
 services:
-  sveltekit:
-    container_name: app-sveltekit
+  cloud:
     build:
       context: . # Use the current directory for the Docker build context
       dockerfile: Dockerfile # Name of the Dockerfile
