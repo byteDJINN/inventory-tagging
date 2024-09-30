@@ -51,19 +51,11 @@
 	let posts = [
 		{ name: 'Dashboard', icon: ChartPieOutline, href: '/dashboard' },
 		{
-			name: 'Layouts',
-			icon: TableColumnSolid,
-			children: {
-				Stacked: '/layouts/stacked',
-				Sidebar: '/layouts/sidebar'
-			}
-		},
-		{
-			name: 'CRUD',
+			name: 'Database',
 			icon: RectangleListSolid,
 			children: {
-				Products: '/crud/products',
-				Users: '/crud/users'
+				Attributes: '/database/attributes',
+				Styles: '/database/styles'
 			}
 		},
 		{ name: 'Settings', icon: CogOutline, href: '/settings' },

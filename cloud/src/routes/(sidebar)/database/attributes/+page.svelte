@@ -1,17 +1,33 @@
 <script lang="ts">
 	import { Breadcrumb, BreadcrumbItem, Button, Checkbox, Drawer, Heading, Input, Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell, Toolbar, ToolbarButton } from 'flowbite-svelte';
-	import { CogSolid, DotsVerticalOutline, EditOutline, ExclamationCircleSolid, TrashBinSolid } from 'flowbite-svelte-icons';
+	import { CogSolid, DotsVerticalOutline, EditOutline, ExclamationCircleSolid, TrashBinSolid, CirclePlusOutline } from 'flowbite-svelte-icons';
 	import type { ComponentType } from 'svelte';
 	import { sineIn } from 'svelte/easing';
-	import Products from '../../../data/product.json';
-	import Delete from './Delete.svelte';
-	import Product from './Product.svelte';
+	import Attribute from './Attribute.svelte';
+	import { onMount } from 'svelte';
+	import { pb } from '$lib/pocketbase';
 
 	let hidden: boolean = true; // modal control
-	let drawerComponent: ComponentType = Product; // drawer component
+	let drawerComponent: ComponentType = Attribute; // drawer component
 
-	const toggle = (component: ComponentType) => {
+	let attributes: {
+		collectionId: string,
+		collectionName: string,
+		created: string,
+		id: string,
+		type: string,
+		updated: string,
+		value: string
+	}[] = [];
+	let selectedAttribute: any = null;
+
+	onMount(async () => {
+		attributes = await pb.collection("attribute").getFullList();
+	});
+
+	const toggle = (component: ComponentType, attribute: any = null) => {
 		drawerComponent = component;
+		selectedAttribute = attribute;
 		hidden = !hidden;
 	};
 
@@ -25,13 +41,8 @@
 
 <main class="relative h-full w-full overflow-y-auto bg-white dark:bg-gray-800">
 	<div class="p-4">
-		<Breadcrumb class="mb-5">
-			<BreadcrumbItem href="/" home>Home</BreadcrumbItem>
-			<BreadcrumbItem href="/crud/products">E-commerce</BreadcrumbItem>
-			<BreadcrumbItem>Products</BreadcrumbItem>
-		</Breadcrumb>
 		<Heading tag="h1" class="text-xl font-semibold text-gray-900 dark:text-white sm:text-2xl">
-			All products
+			Attributes
 		</Heading>
 
 		<Toolbar embedded class="w-full py-4 text-gray-500 dark:text-gray-400">
@@ -62,45 +73,28 @@
 			</ToolbarButton>
 
 			<div slot="end" class="space-x-2">
-				<Button class="whitespace-nowrap" on:click={() => toggle(Product)}>Add new product</Button>
+				<Button size="sm" class="gap-2" on:click={() => toggle(Attribute)}>
+					<CirclePlusOutline size="sm" /> Add
+				</Button>
 			</div>
 		</Toolbar> 
 	</div>
 	<Table>
 		<TableHead class="border-y border-gray-200 bg-gray-100 dark:border-gray-700">
 			<TableHeadCell class="w-4 p-4"><Checkbox /></TableHeadCell>
-			{#each ['Product Name', 'Technology', 'Description', 'ID', 'Price', 'Discount', 'Actions'] as title}
+			{#each ['Type', 'Value', 'Actions'] as title}
 				<TableHeadCell class="ps-4 font-normal">{title}</TableHeadCell>
 			{/each}
 		</TableHead>
 		<TableBody>
-			{#each Products as product}
+			{#each attributes as attribute}
 				<TableBodyRow class="text-base">
 					<TableBodyCell class="w-4 p-4"><Checkbox /></TableBodyCell>
-					<TableBodyCell class="flex items-center space-x-6 whitespace-nowrap p-4">
-						<div class="text-sm font-normal text-gray-500 dark:text-gray-400">
-							<div class="text-base font-semibold text-gray-900 dark:text-white">
-								{product.name}
-							</div>
-							<div class="text-sm font-normal text-gray-500 dark:text-gray-400">
-								{product.category}
-							</div>
-						</div>
-					</TableBodyCell>
-					<TableBodyCell class="p-4">{product.technology}</TableBodyCell>
-					<TableBodyCell
-						class="max-w-sm overflow-hidden truncate p-4 text-base font-normal text-gray-500 dark:text-gray-400 xl:max-w-xs"
-						>{product.description}</TableBodyCell
-					>
-					<TableBodyCell class="p-4">#{product.id}</TableBodyCell>
-					<TableBodyCell class="p-4">{product.price}</TableBodyCell>
-					<TableBodyCell class="p-4">{product.discount}</TableBodyCell>
+					<TableBodyCell class="p-4">{attribute.type}</TableBodyCell>
+					<TableBodyCell class="p-4">{attribute.value}</TableBodyCell>
 					<TableBodyCell class="space-x-2">
-						<Button size="sm" class="gap-2 px-3" on:click={() => toggle(Product)}>
+						<Button size="xs" class="gap-2 px-3" on:click={() => toggle(Attribute, attribute)}>
 							<EditOutline size="sm" /> Update
-						</Button>
-						<Button color="red" size="sm" class="gap-2 px-3" on:click={() => toggle(Delete)}>
-							<TrashBinSolid size="sm" /> Delete item
 						</Button>
 					</TableBodyCell>
 				</TableBodyRow>
@@ -111,5 +105,13 @@
 
 
 <Drawer placement="right" transitionType="fly" {transitionParams} bind:hidden>
-	<svelte:component this={drawerComponent} bind:hidden />
+	<svelte:component 
+		this={drawerComponent} 
+		bind:hidden 
+		selectedAttribute={selectedAttribute} 
+		on:attributeUpdated={async () => {
+			hidden = true;
+			attributes = await pb.collection("attribute").getFullList();
+		}} 
+	/>
 </Drawer>
