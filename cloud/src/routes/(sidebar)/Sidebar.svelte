@@ -58,6 +58,15 @@
 				Styles: '/database/styles'
 			}
 		},
+		{
+			name: 'Authentication',
+			icon: LockSolid,
+			children: {
+				'Sign in': '/authentication/sign-in',
+				'Sign up': '/authentication/sign-up',
+				'Forgot password': '/authentication/forgot-password',
+			}
+		},
 		{ name: 'Settings', icon: CogOutline, href: '/settings' },
 		{
 			name: 'Pages',
@@ -67,15 +76,6 @@
 				Maintenance: '/errors/400',
 				'404 not found': '/errors/404',
 				'500 server error': '/errors/500'
-			}
-		},
-		{
-			name: 'Authentication',
-			icon: LockSolid,
-			children: {
-				'Sign in': '/authentication/sign-in',
-				'Sign up': '/authentication/sign-up',
-				'Forgot password': '/authentication/forgot-password',
 			}
 		},
 		{
