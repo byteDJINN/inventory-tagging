@@ -81,9 +81,9 @@
 			</div>
 		</Toolbar> 
 	</div>
+	<div class="pl-4">
 	<Table>
 		<TableHead class="border-y border-gray-200 bg-gray-100 dark:border-gray-700">
-			<TableHeadCell class="w-4 p-4"><Checkbox /></TableHeadCell>
 			{#each ['Name', 'Description', 'Actions'] as title}
 				<TableHeadCell class="ps-4 font-normal">{title}</TableHeadCell>
 			{/each}
@@ -91,9 +91,8 @@
 		<TableBody>
 			{#each sortedStyles as style}
 				<TableBodyRow class="text-base">
-					<TableBodyCell class="w-4 p-4"><Checkbox /></TableBodyCell>
 					<TableBodyCell class="p-4">{style.name}</TableBodyCell>
-					<TableBodyCell class="p-4">{style.description}</TableBodyCell>
+					<TableBodyCell class="max-w-sm overflow-hidden truncate p-4 text-gray-500 dark:text-gray-400 xl:max-w-xs">{style.description}</TableBodyCell>
 					<TableBodyCell class="space-x-2">
 						<Button size="xs" class="gap-2 px-3" on:click={() => toggle(Style, style)}>
 							<EditOutline size="sm" /> Update
@@ -103,6 +102,7 @@
 			{/each}
 		</TableBody>
 	</Table>
+	</div>
 </main>
 
 <Drawer placement="right" transitionType="fly" {transitionParams} bind:hidden>

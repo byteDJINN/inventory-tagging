@@ -54,8 +54,10 @@
 			name: 'Database',
 			icon: RectangleListSolid,
 			children: {
+				Styles: '/database/styles',
 				Attributes: '/database/attributes',
-				Styles: '/database/styles'
+				Items: '/database/items'
+
 			}
 		},
 		{

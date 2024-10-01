@@ -84,6 +84,7 @@
 			</div>
 		</Toolbar> 
 	</div>
+	<div class="pl-4">
 	<Table>
 		<TableHead class="border-y border-gray-200 bg-gray-100 dark:border-gray-700">
 			<TableHeadCell class="w-4 p-4"><Checkbox /></TableHeadCell>
@@ -106,6 +107,7 @@
 			{/each}
 		</TableBody>
 	</Table>
+	</div>
 </main>
 
 
