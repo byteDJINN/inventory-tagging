@@ -1,7 +1,7 @@
 # Dockerfile
 
 # Use the official Node.js image.
-FROM node:latest
+FROM node:lts-alpine
 
 # Set the working directory.
 WORKDIR /app
