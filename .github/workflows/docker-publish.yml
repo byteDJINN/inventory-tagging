@@ -33,3 +33,7 @@ jobs:
         context: ./cloud
         push: true
         tags: ghcr.io/bytedjinn/inventory-tagging:latest
+
+    - name: Trigger Webhook
+      run: |
+        curl -X POST https://webhooks.bytedjinn.com/hooks/inventory-redeploy
