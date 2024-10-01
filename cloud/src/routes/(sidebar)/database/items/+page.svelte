@@ -1,14 +1,16 @@
 <script lang="ts">
-	import { Breadcrumb, BreadcrumbItem, Button, Checkbox, Drawer, Heading, Input, Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell, Toolbar, ToolbarButton } from 'flowbite-svelte';
-	import { CogSolid, DotsVerticalOutline, EditOutline, ExclamationCircleSolid, TrashBinSolid, CirclePlusOutline, ChevronDownOutline, ChevronUpOutline } from 'flowbite-svelte-icons';
+	import { Breadcrumb, BreadcrumbItem, Button, Checkbox, Drawer, Heading, Input, Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell, Toolbar, ToolbarButton, MultiSelect, Spinner } from 'flowbite-svelte';
+	import { CogSolid, DotsVerticalOutline, EditOutline, ExclamationCircleSolid, TrashBinSolid, CirclePlusOutline, ChevronDownOutline, ChevronUpOutline, PlusOutline, MinusOutline, TagSolid } from 'flowbite-svelte-icons';
 	import type { ComponentType } from 'svelte';
 	import { sineIn } from 'svelte/easing';
 	import Item from './Item.svelte';
 	import { onMount } from 'svelte';
 	import { pb } from '$lib/pocketbase';
+	import AttributeSelector from './AttributeSelector.svelte';
 
 	let hidden: boolean = true;
 	let drawerComponent: ComponentType = Item;
+	let drawerItem: any = null;
 
 	let items: {
 		id: string,
@@ -29,23 +31,42 @@
 			id: string,
 			tagID: string,
 			price: number,
-			sold: string | null
+			sold: string | null,
+			attributes: string[]
 		}[]
 	}[] = [];
 	let expandedStyles: Set<string> = new Set();
 
+	let selectedItems: Set<string> = new Set();
+	let availableAttributes: string[] = [];
+
+    let updateQueue: (() => Promise<void>)[] = [];
+    let isUpdating = false;
+
+    $: console.log(updateQueue);
+
 	onMount(async () => {
 		const fetchedItems = await pb.collection("item").getFullList();
 		const fetchedStyles = await pb.collection("style").getFullList();
+		const fetchedItemAttributes = await pb.collection("itemattribute").getFullList({
+			expand: 'attributeID'
+		});
+		const fetchedAttributes = await pb.collection("attribute").getFullList();
+
+		availableAttributes = fetchedAttributes.map(attr => `${attr.type}: ${attr.value}`);
 
 		styles = fetchedStyles.map(style => ({
 			...style,
-			items: fetchedItems.filter(item => item.styleID === style.id)
+			items: fetchedItems.filter(item => item.styleID === style.id).map(item => ({
+				...item,
+				attributes: fetchedItemAttributes
+					.filter(ia => ia.itemID === item.id)
+					.map(ia => `${ia.expand.attributeID.type}: ${ia.expand.attributeID.value}`)
+			}))
 		}));
 
-		// Remove average sold price calculation
-
 		styles.sort((a, b) => a.name.localeCompare(b.name));
+
 	});
 
 	function calculateRelevance(item: any, searchTerms: string[]): number {
@@ -115,6 +136,119 @@
 		}
 		expandedStyles = expandedStyles;
 	}
+
+	function toggleItemSelection(itemId: string) {
+		if (selectedItems.has(itemId)) {
+			selectedItems.delete(itemId);
+		} else {
+			selectedItems.add(itemId);
+		}
+		selectedItems = selectedItems;
+	}
+
+	async function updateItemAttributes(itemId: string, selection: {name: string, value: string}[]) {
+		let newAttributes: string[] = selection.map(item => item.value);
+		
+		// Fetch current attributes for the item from the database
+		const currentItemAttributes = await pb.collection("itemattribute").getFullList({
+			filter: `itemID="${itemId}"`,
+			expand: 'attributeID'
+		});
+
+		const currentAttributes = currentItemAttributes.map(ia => 
+			`${ia.expand.attributeID.type}: ${ia.expand.attributeID.value}`
+		);
+
+        // if they are the same dont continue
+        if (currentAttributes.length === newAttributes.length && currentAttributes.every(attr => newAttributes.includes(attr))) {
+            return;
+        }
+		
+
+		// Attributes to add
+		const attributesToAdd = newAttributes.filter(attr => !currentAttributes.includes(attr));
+
+		// Attributes to remove
+		const attributesToRemove = currentItemAttributes.filter(ia => 
+			!newAttributes.includes(`${ia.expand.attributeID.type}: ${ia.expand.attributeID.value}`)
+		);
+
+		// Remove attributes
+		for (const ia of attributesToRemove) {
+			await pb.collection("itemattribute").delete(ia.id);
+		}
+
+		// Add new attributes
+		for (const attr of attributesToAdd) {
+			const [type, value] = attr.split(': ');
+			const attribute = await pb.collection("attribute").getFirstListItem(`type="${type}" && value="${value}"`);
+			await pb.collection("itemattribute").create({
+				itemID: itemId,
+				attributeID: attribute.id
+			});
+		}
+
+		// After updating, refresh the item's attributes
+		const updatedItemAttributes = await pb.collection("itemattribute").getFullList({
+			filter: `itemID="${itemId}"`,
+			expand: 'attributeID'
+		});
+
+
+		// Update the item in the styles array
+		styles = styles.map(style => ({
+			...style,
+			items: style.items.map(item => 
+				item.id === itemId 
+					? {
+							...item,
+							attributes: updatedItemAttributes.map(ia => 
+								`${ia.expand.attributeID.type}: ${ia.expand.attributeID.value}`
+							)
+						}
+					: item
+			)
+		}));
+	}
+
+	function openAttributeSelector(item: any) {
+		drawerComponent = AttributeSelector;
+		drawerItem = item;
+		hidden = false;
+	}
+
+        // Debounce function
+    function debounce(func: Function, delay: number) {
+        let timeoutId: NodeJS.Timeout;
+        return (...args: any[]) => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => func(...args), delay);
+        };
+    }
+
+    // Queue update function
+    const queueUpdate = debounce((selectedAttributes: string[]) => {
+        if (drawerItem == null) {
+            return ;
+        }
+        updateQueue = [...updateQueue, async () => {
+            await updateItemAttributes(drawerItem.id, selectedAttributes.map(attr => ({ name: attr, value: attr })));
+        }];
+        processQueue();
+    }, 300);
+
+    // Process queue function
+    async function processQueue() {
+        if (isUpdating || updateQueue.length === 0) return;
+        isUpdating = true;
+        while (updateQueue.length > 0) {
+            const update = updateQueue[0];
+            if (update) await update();
+            updateQueue = updateQueue.slice(1);
+        }
+        isUpdating = false;
+    }
+
 </script>
 
 <main class="relative h-full w-full overflow-y-auto bg-white dark:bg-gray-800">
@@ -126,16 +260,20 @@
 		<Toolbar embedded class="w-full py-4 text-gray-500 dark:text-gray-400">
 			<Input bind:value={searchTerm} placeholder="Search for items" class="me-6 w-80 border xl:w-96" />
 
-			<div slot="end" class="space-x-2">
-				<Button size="sm" class="gap-2" on:click={() => toggle(Item)}>
-					<CirclePlusOutline size="sm" /> Add
-				</Button>
-			</div>
+			<div slot="end" class="space-x-4 flex items-center">
+                {#if updateQueue.length > 0}
+                    <Spinner size="6" color="gray" />
+                {/if}
+                <Button size="xs" class="gap-2" on:click={() => toggle(Item)}>
+                    <CirclePlusOutline size="sm" /> New Item
+                </Button>
+            </div>
 		</Toolbar> 
 	</div>
     <div class="pl-4">
 	<Table>
 		<TableHead class="border-y border-gray-200 bg-gray-100 dark:border-gray-700">
+			<TableHeadCell class="ps-4 font-normal w-8"></TableHeadCell>
 			{#each ['Style', 'Description', 'Actions'] as title}
 				<TableHeadCell class="ps-4 font-normal">{title}</TableHeadCell>
 			{/each}
@@ -143,8 +281,9 @@
 		<TableBody>
 			{#each sortedStyles as style}
 				<TableBodyRow class="text-base">
+					<TableBodyCell class="p-4"></TableBodyCell>
 					<TableBodyCell class="p-4">{style.name}</TableBodyCell>
-					<TableBodyCell class="max-w-sm overflow-hidden truncate p-4 text-gray-500 dark:text-gray-400 xl:max-w-xs">
+					<TableBodyCell class="max-w-sm text-sm overflow-hidden truncate p-4 text-gray-500 dark:text-gray-400 xl:max-w-xs">
                         {style.description}
 					</TableBodyCell>
 					<TableBodyCell class="space-x-2">
@@ -162,13 +301,17 @@
 						<TableBodyCell colspan="5" class="p-0 pl-[4%]">
 							<Table>
 								<TableHead class=" bg-gray-100 dark:border-gray-700">
-									{#each ["Tag ID", "Price", "Sold", "Actions"] as title}
+									<TableHeadCell class="ps-8 font-normal w-8"></TableHeadCell>
+									{#each ["Tag ID", "Price", "Sold", "Attributes", "Actions"] as title}
 										<TableHeadCell class="ps-8 font-normal">{title}</TableHeadCell>
 									{/each}
 								</TableHead>
 								<TableBody>
 									{#each sortedItems(style) as item}
 										<TableBodyRow>
+											<TableBodyCell class="ps-8">
+												<Checkbox on:change={() => toggleItemSelection(item.id)} checked={selectedItems.has(item.id)} />
+											</TableBodyCell>
 											<TableBodyCell class="ps-8">{item.tagID}</TableBodyCell>
 											<TableBodyCell>${item.price.toFixed(2)}</TableBodyCell>
 											<TableBodyCell>
@@ -178,10 +321,21 @@
 													Not sold
 												{/if}
 											</TableBodyCell>
-											<TableBodyCell>
-												<Button size="xs" class="gap-2 px-3" on:click={() => toggle(Item, item)}>
-													<EditOutline size="sm" /> Update
-												</Button>
+											<TableBodyCell class="max-w-xs ">
+												<div class="flex items-center">
+													<div class="max-h-20 w-full overflow-y-auto overflow-x-hidden text-sm hover:bg-gray-100 hover:cursor-pointer"
+                                                     on:click={() => openAttributeSelector(item)}>
+														{#if item.attributes.length > 0}
+															<ul>
+																{#each item.attributes.sort((a, b) => a.localeCompare(b)) as attribute}
+																	<li>{attribute}</li>
+																{/each}
+															</ul>
+														{:else}
+															<span class="text-gray-500">No attributes</span>
+														{/if}
+													</div>
+												</div>
 											</TableBodyCell>
 										</TableBodyRow>
 									{/each}
@@ -200,12 +354,10 @@
 	<svelte:component 
 		this={drawerComponent} 
 		bind:hidden 
-		selectedItem={selectedItem} 
-		on:itemUpdated={async () => {
-			hidden = true;
-			items = await pb.collection("item").getFullList({
-				expand: 'style'
-			});
-		}} 
+        {drawerItem}
+        {updateItemAttributes}
+		{availableAttributes}
+        {updateQueue}
+        {queueUpdate}
 	/>
 </Drawer>
