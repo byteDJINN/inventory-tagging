@@ -37,7 +37,6 @@
 	}[] = [];
 	let expandedStyles: Set<string> = new Set();
 
-	let selectedItems: Set<string> = new Set();
 	let availableAttributes: string[] = [];
 
     let updateQueue: (() => Promise<void>)[] = [];
@@ -135,15 +134,6 @@
 			expandedStyles.add(styleId);
 		}
 		expandedStyles = expandedStyles;
-	}
-
-	function toggleItemSelection(itemId: string) {
-		if (selectedItems.has(itemId)) {
-			selectedItems.delete(itemId);
-		} else {
-			selectedItems.add(itemId);
-		}
-		selectedItems = selectedItems;
 	}
 
 	async function updateItemAttributes(itemId: string, selection: {name: string, value: string}[]) {
@@ -274,9 +264,9 @@
 	<Table>
 		<TableHead class="border-y border-gray-200 bg-gray-100 dark:border-gray-700">
 			<TableHeadCell class="ps-4 font-normal w-8"></TableHeadCell>
-			{#each ['Style', 'Description', 'Actions'] as title}
-				<TableHeadCell class="ps-4 font-normal">{title}</TableHeadCell>
-			{/each}
+			<TableHeadCell class="ps-4 font-normal w-1/4">Style</TableHeadCell>
+			<TableHeadCell class="ps-4 font-normal w-1/2">Description</TableHeadCell>
+			<TableHeadCell class="ps-4 font-normal w-1/4">Actions</TableHeadCell>
 		</TableHead>
 		<TableBody>
 			{#each sortedStyles as style}
@@ -298,20 +288,17 @@
 				</TableBodyRow>
 				{#if expandedStyles.has(style.id)}
 					<TableBodyRow>
-						<TableBodyCell colspan="5" class="p-0 pl-[4%]">
+						<TableBodyCell colspan="4" class="p-0 pl-[4%]">
 							<Table>
-								<TableHead class=" bg-gray-100 dark:border-gray-700">
-									<TableHeadCell class="ps-8 font-normal w-8"></TableHeadCell>
-									{#each ["Tag ID", "Price", "Sold", "Attributes", "Actions"] as title}
-										<TableHeadCell class="ps-8 font-normal">{title}</TableHeadCell>
-									{/each}
+								<TableHead class="bg-gray-100 dark:border-gray-700">
+									<TableHeadCell class="ps-8 font-normal w-1/5">Tag ID</TableHeadCell>
+									<TableHeadCell class="ps-8 font-normal w-1/5">Price</TableHeadCell>
+									<TableHeadCell class="ps-8 font-normal w-1/5">Sold</TableHeadCell>
+									<TableHeadCell class="ps-8 font-normal w-2/5">Attributes</TableHeadCell>
 								</TableHead>
 								<TableBody>
 									{#each sortedItems(style) as item}
 										<TableBodyRow>
-											<TableBodyCell class="ps-8">
-												<Checkbox on:change={() => toggleItemSelection(item.id)} checked={selectedItems.has(item.id)} />
-											</TableBodyCell>
 											<TableBodyCell class="ps-8">{item.tagID}</TableBodyCell>
 											<TableBodyCell>${item.price.toFixed(2)}</TableBodyCell>
 											<TableBodyCell>
@@ -321,9 +308,9 @@
 													Not sold
 												{/if}
 											</TableBodyCell>
-											<TableBodyCell class="max-w-xs ">
+											<TableBodyCell class="max-w-xs">
 												<div class="flex items-center">
-													<div class="max-h-20 w-full overflow-y-auto overflow-x-hidden text-sm hover:bg-gray-100 hover:cursor-pointer"
+													<div class="max-h-16 rounded p-1 w-full overflow-y-auto overflow-x-hidden text-sm hover:bg-gray-100 hover:cursor-pointer"
                                                      on:click={() => openAttributeSelector(item)}>
 														{#if item.attributes.length > 0}
 															<ul>
