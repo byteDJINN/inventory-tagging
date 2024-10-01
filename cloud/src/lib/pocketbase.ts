@@ -1,3 +1,3 @@
 import PocketBase from 'pocketbase';
 
-export const pb = new PocketBase('https://inventory.bytedjinn.com');
+export const pb = new PocketBase('https://inventory.bytedjinn.com/db/');
