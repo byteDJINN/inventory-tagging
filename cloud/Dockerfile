@@ -15,3 +15,5 @@ COPY . .
 
 # Expose the port your SvelteKit app will run on.
 EXPOSE 3003
+
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
