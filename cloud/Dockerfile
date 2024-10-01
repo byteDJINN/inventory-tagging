@@ -14,4 +14,4 @@ RUN npm install
 COPY . .
 
 # Expose the port your SvelteKit app will run on.
-EXPOSE 5173
+EXPOSE 3003

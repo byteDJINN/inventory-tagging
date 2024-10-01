@@ -8,7 +8,7 @@ services:
       context: . # Use the current directory for the Docker build context
       dockerfile: Dockerfile # Name of the Dockerfile
     ports:
-      - "5173:5173" # Map port 5173 on the host to port 5173 in the container
+      - "3003:3003" # Map port 5173 on the host to port 5173 in the container
     volumes:
       - ./src:/app/src # Mount the src directory to the /app/src directory in the container
     command: npm run dev -- --host 0.0.0.0 # Command to start the SvelteKit server
