@@ -2,7 +2,6 @@
 	import type { PageData } from './$types';
 	import Dashboard from '../utils/dashboard/Dashboard.svelte';
 	export let data: PageData;
-	console.log("Version 0.1");
 </script>
 
 <main class="p-4">

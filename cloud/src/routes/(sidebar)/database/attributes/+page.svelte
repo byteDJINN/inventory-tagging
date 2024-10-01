@@ -20,10 +20,39 @@
 		value: string
 	}[] = [];
 	let selectedAttribute: any = null;
+	let searchTerm: string = '';
 
 	onMount(async () => {
 		attributes = await pb.collection("attribute").getFullList();
+		attributes.sort((a, b) => a.type.localeCompare(b.type));
 	});
+
+	// New function to calculate relevance score
+	function calculateRelevance(attribute: any, searchTerms: string[]): number {
+		let score = 0;
+		const lowercaseType = attribute.type.toLowerCase();
+		const lowercaseValue = attribute.value.toLowerCase();
+
+		for (const term of searchTerms) {
+			if (lowercaseType.includes(term)) {
+				score += (term.length / lowercaseType.length);
+			}
+			if (lowercaseValue.includes(term)) {
+				score += (term.length / lowercaseValue.length);
+			}
+		}
+		return score;
+	}
+
+	// New function to sort attributes based on search relevance
+	$: sortedAttributes = searchTerm
+		? [...attributes].sort((a, b) => {
+				const terms = searchTerm.toLowerCase().split(' ');
+				const scoreA = calculateRelevance(a, terms);
+				const scoreB = calculateRelevance(b, terms);
+				return scoreB - scoreA;
+			})
+		: attributes;
 
 	const toggle = (component: ComponentType, attribute: any = null) => {
 		drawerComponent = component;
@@ -46,31 +75,7 @@
 		</Heading>
 
 		<Toolbar embedded class="w-full py-4 text-gray-500 dark:text-gray-400">
-			<Input placeholder="Search for products" class="me-6 w-80 border xl:w-96" />
-			<ToolbarButton
-				color="dark"
-				class="m-0 rounded p-1 hover:bg-gray-100 focus:ring-0 dark:hover:bg-gray-700"
-			>
-				<CogSolid size="lg" />
-			</ToolbarButton>
-			<ToolbarButton
-				color="dark"
-				class="m-0 rounded p-1 hover:bg-gray-100 focus:ring-0 dark:hover:bg-gray-700"
-			>
-				<TrashBinSolid size="lg" />
-			</ToolbarButton>
-			<ToolbarButton
-				color="dark"
-				class="m-0 rounded p-1 hover:bg-gray-100 focus:ring-0 dark:hover:bg-gray-700"
-			>
-				<ExclamationCircleSolid size="lg" />
-			</ToolbarButton>
-			<ToolbarButton
-				color="dark"
-				class="m-0 rounded p-1 hover:bg-gray-100 focus:ring-0 dark:hover:bg-gray-700"
-			>
-				<DotsVerticalOutline size="lg" />
-			</ToolbarButton>
+			<Input bind:value={searchTerm} placeholder="Search for attributes" class="me-6 w-80 border xl:w-96" />
 
 			<div slot="end" class="space-x-2">
 				<Button size="sm" class="gap-2" on:click={() => toggle(Attribute)}>
@@ -79,6 +84,7 @@
 			</div>
 		</Toolbar> 
 	</div>
+	<div class="pl-4">
 	<Table>
 		<TableHead class="border-y border-gray-200 bg-gray-100 dark:border-gray-700">
 			<TableHeadCell class="w-4 p-4"><Checkbox /></TableHeadCell>
@@ -87,7 +93,7 @@
 			{/each}
 		</TableHead>
 		<TableBody>
-			{#each attributes as attribute}
+			{#each sortedAttributes as attribute}
 				<TableBodyRow class="text-base">
 					<TableBodyCell class="w-4 p-4"><Checkbox /></TableBodyCell>
 					<TableBodyCell class="p-4">{attribute.type}</TableBodyCell>
@@ -101,6 +107,7 @@
 			{/each}
 		</TableBody>
 	</Table>
+	</div>
 </main>
 
 
