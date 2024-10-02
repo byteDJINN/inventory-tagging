@@ -27,7 +27,7 @@ def handle_checkout(message):
     print('Received message:', message)
     # Perform necessary actions or send a response
 
-x = {"message":"Hello, World!",
+x = [{
      "product_id": "471580",
      "colour": "blue",
      "price": "24.90",
@@ -35,14 +35,14 @@ x = {"message":"Hello, World!",
      "category": "T-shirts",
      "brand": "Uniqlo",
      "title": "Uniqlo U AIRism Cotton Oversized Crew Neck Half Sleeve T-Shirt",
-     }
+     }]
 def background_task():
     """Example of how to send server-generated events to clients."""
     while True:
-        x['product_id'] = str(int(x['product_id']) + 1)
-        x['price'] = str(float(x['price']) + 1)
-        socketio.emit('scan', json.dumps(x)  )
-        time.sleep(100)
+        x[-1]['product_id'] = str(int(x[-1]['product_id']) + 1)
+        x[-1]['price'] = str(float(x[-1]['price']) + 1)
+        socketio.emit('scan', json.dumps(x[-1])  )
+        time.sleep(1)
 thread = threading.Thread(target=background_task)
 thread.daemon = True
 thread.start()
