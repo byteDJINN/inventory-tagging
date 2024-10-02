@@ -22,6 +22,11 @@ def index():
 def checkout():
     return render_template('checkout.html')
 
+@app.route('/add-product')
+def add_product():
+    return render_template('add_inventory.html')
+
+
 @app.route('/get-data', methods=['GET'])
 def get_data():
     return jsonify(latest_device_data)

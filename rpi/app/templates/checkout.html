@@ -7,10 +7,6 @@
     <span>( {{items.length}} )</span>
 </h1>
 
-
-
-
-
 <div class="btn-group">
     <button class="btn btn-primary" @click="greet">add</button>
     <button class="btn btn-primary" @click="clear">Clear</button>
@@ -24,8 +20,6 @@
     <ul class="list-group" name="todolist" tag="ul">
         <li v-for="item in items" v-bind:key="item.product_id" class="list-group-item">
             <span class="label">{{item.title}}-{{item.product_id}} - {{ item.price }}</span>
-
-
             <button class="btn btn-danger ms-4" @click="deleteItemFromList(item)">
                 delete
             </button>
