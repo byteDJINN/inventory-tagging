@@ -1,5 +1,4 @@
 from app import app
-from app import sockets
 from flask import render_template, jsonify, request
 
 

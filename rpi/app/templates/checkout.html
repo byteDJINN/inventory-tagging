@@ -65,15 +65,13 @@
     });
     app.mount('#app')
 
-    const socket = io();
+
     socket.on('connect', function () {
         console.log('Connected');
     });
     socket.on('scan', function (data) {
         console.log(data);
         items.push(JSON.parse(data))
-
-
     });
 </script>
 {% endraw %}
