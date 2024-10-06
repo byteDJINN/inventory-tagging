@@ -12,11 +12,13 @@
 	} from 'flowbite-svelte';
 	import { ChevronDownOutline } from 'flowbite-svelte-icons';
 	import '../../app.pcss';
-	import Users from '../data/users.json';
+	import { page } from '$app/stores';
 
 	export let fluid = true;
 	export let drawerHidden = true;
 	export let list = false;
+
+	$: currentUser = $page.data.user;
 </script>
 
 <Navbar {fluid} class="text-black" color="default" let:NavContainer>
@@ -39,7 +41,7 @@
 		</NavBrand>
 
 		<div class="ms-auto flex items-center text-gray-500 dark:text-gray-400 sm:order-2">
-			<UserMenu {...Users[4]} />
+			<UserMenu user={currentUser} />
 		</div>
 	</NavContainer>
 </Navbar>

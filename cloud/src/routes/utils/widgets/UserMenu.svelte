@@ -4,10 +4,11 @@
 	import { goto } from '$app/navigation';
 	import { pb } from '$lib/pocketbase';
 	import { invalidateAll } from '$app/navigation';
+	
+	// Add this import for the user icon
+	import { UserCircleSolid } from 'flowbite-svelte-icons';
 
-	export let name: string = ''; // "Neil Sims",
-	export let avatar: string = ''; // "neil-sims.png",
-	export let email: string = ''; // "neil.sims@flowbite.com",
+	export let user: any = null;
 	
 	function handleDashboard() {
 		goto('/dashboard');
@@ -30,17 +31,14 @@
 		}
 	}
 </script>
-
-<button class="ms-3 rounded-full ring-gray-400 focus:ring-4 dark:ring-gray-600">
-	<Avatar size="sm" src={imagesPath(avatar, 'users')} tabindex="0" />
+<button class="ms-3 rounded-full dark:ring-gray-600">
+		<UserCircleSolid class="w-6 h-6 text-gray-500 dark:text-gray-400" />
 </button>
 <Dropdown placement="bottom-end">
 	<DropdownHeader>
-		<span class="block text-sm">{name}</span>
-		<span class="block truncate text-sm font-medium">{email}</span>
+		<span class="block text-sm">{user.email}</span>
 	</DropdownHeader>
 	<DropdownItem on:click={handleDashboard}>Dashboard</DropdownItem>
-	<DropdownDivider />
 	<DropdownItem on:click={handleSignOut}>Sign out</DropdownItem>
 </Dropdown>
 

@@ -20,11 +20,7 @@
 	</div>
 
 	<Chart options={chartOptions}></Chart>
-	<div
-		class="mt-4 flex items-center justify-between border-t border-gray-200 pt-3 dark:border-gray-700 sm:pt-6"
-	>
-		<LastRange />
-	</div>
+
 </Card>
 
 <!--
