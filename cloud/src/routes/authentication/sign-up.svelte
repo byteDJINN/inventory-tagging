@@ -5,12 +5,6 @@
 	import { goto, invalidateAll } from '$app/navigation';
 
 	const title = 'Create a Free Account';
-	const site = {
-		name: 'Flowbite',
-		img: '/images/flowbite-svelte-icon-logo.svg',
-		link: '/',
-		imgAlt: 'FlowBite Logo'
-	};
 	const acceptTerms = true;
 	const haveAccount = true;
 	const btnTitle = 'Create account';
@@ -64,7 +58,6 @@
 
 <SignUp
 	{title}
-	{site}
 	{acceptTerms}
 	{haveAccount}
 	{btnTitle}

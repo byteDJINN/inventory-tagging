@@ -4,12 +4,6 @@
 	import { goto, invalidateAll } from '$app/navigation';
 
 	let title = 'Sign in to platform';
-	let site = {
-		name: 'Flowbite',
-		img: '/images/flowbite-svelte-icon-logo.svg',
-		link: '/',
-		imgAlt: 'FlowBite Logo'
-	};
 	let rememberMe = true;
 	let lostPassword = true;
 	let createAccount = true;
@@ -56,12 +50,11 @@
 			console.error('Sign-in error:', err);
 			errorMessage = 'An error occurred during sign-in. Please try again.';
 		}
-	};
+	}; 
 </script>
 
 <SignIn
 	{title}
-	{site}
 	{rememberMe}
 	{lostPassword}
 	{createAccount}
