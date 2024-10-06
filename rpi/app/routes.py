@@ -1,6 +1,10 @@
 from app import app
 from flask import render_template, jsonify, request
-
+from gpio.camera import camera
+from gpio.ocr import submit_text
+from libcamera import controls
+import threading
+from app.sockets import socketio
 
 latest_device_data = {}
 button_press_count = 0
@@ -36,3 +40,31 @@ def button_press_api():
     button_press_count += 1
     print(f"Button press registered. Total count: {button_press_count}")
     return jsonify({'message': 'Button press registered successfully'})
+
+@app.route('/capture', methods=['GET'])
+def capture():
+#     path = "/home/csseiot/Desktop/xxx.jpg"
+#     camera.capture_file(path)
+#     camera.stop_preview()
+#     camera.stop()
+    submit_text(socketio)
+    
+    return jsonify({'message': 'camera stop'})
+    
+@app.route('/start-cam', methods=['GET'])
+def start_cam():
+    camera.start(show_preview=True)
+    camera.set_controls({
+        "AfMode": controls.AfModeEnum.Continuous,
+        "AfSpeed": controls.AfSpeedEnum.Fast
+        })
+    return jsonify({'message': 'camera start'})
+    
+# @app.route('/stop-cam', methods=['GET'])
+# def stop_cam()
+
+    return jsonify({'message': 'Capture successfully'})
+
+
+
+

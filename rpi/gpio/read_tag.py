@@ -11,6 +11,7 @@ def start_read_tag_id(socketio, led, lcd):
     tag_id = ""
     previous = "init"
     while True:
+        sleep(0.5) # optimize performance
         tag_id,text = reader.read()
         if tag_id == previous:
             sleep(2)
