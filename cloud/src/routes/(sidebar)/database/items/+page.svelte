@@ -6,6 +6,7 @@
 	import Item from './Item.svelte';
 	import { onMount } from 'svelte';
 	import { pb } from '$lib/pocketbase';
+	import Footer from '../../Footer.svelte';
 
 	let hidden: boolean = true;
 	let drawerComponent: ComponentType = Item;
@@ -277,6 +278,7 @@
 	</Table>
     </div>
 </main>
+<Footer />
 
 <Drawer placement="right" transitionType="fly" {transitionParams} bind:hidden>
 	<svelte:component 
