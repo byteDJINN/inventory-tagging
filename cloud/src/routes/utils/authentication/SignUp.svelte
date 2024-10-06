@@ -35,13 +35,6 @@
 			</h1>
 			<form class="mt-8 space-y-6" on:submit|preventDefault>
 				<slot />
-				{#if acceptTerms}
-					<Checkbox class="pt-1" name="accept">
-						<span>
-							I accept the <A href={termsLink}>Terms and Conditions</A>
-						</span>
-					</Checkbox>
-				{/if}
 				<Button type="submit" size="lg">{btnTitle}</Button>
 				{#if haveAccount}
 					<div class={haveAccountDivClass}>

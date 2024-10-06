@@ -37,10 +37,12 @@
 			</h1>
 			<form class="mt-8 space-y-6" on:submit|preventDefault>
 				<slot />
-				{#if rememberMe || lostPassword}
+				{#if createAccount || lostPassword}
 					<div class="flex items-start">
-						{#if rememberMe}
-							<Checkbox class="accent-primary-600" name="remember">Remember me</Checkbox>
+						{#if createAccount}
+							<div class="text-sm font-medium text-gray-500 dark:text-gray-400">
+								Not registered? <A href={registerLink}>{createAccountTitle}</A>
+							</div>
 						{/if}
 						{#if lostPassword}
 							<A href={lostPasswordLink} aClass="ml-auto text-sm">Lost Password?</A>
@@ -48,11 +50,7 @@
 					</div>
 				{/if}
 				<Button type="submit" size="lg">{loginTitle}</Button>
-				{#if createAccount}
-					<div class="text-sm font-medium text-gray-500 dark:text-gray-400">
-						Not registered? <A href={registerLink}>{createAccountTitle}</A>
-					</div>
-				{/if}
+
 			</form>
 		</Card>
 	</div>

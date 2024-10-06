@@ -2,7 +2,7 @@
 	import { Label, Input, Alert } from 'flowbite-svelte';
 	import SignUp from '../utils/authentication/SignUp.svelte';
 	import { pb } from '$lib/pocketbase';
-	import { goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 
 	const title = 'Create a Free Account';
 	const site = {
@@ -20,30 +20,41 @@
 
 	let email = '';
 	let password = '';
-	let confirmPassword = '';
+	let passwordConfirm = '';
 	let errorMessage = '';
 	let successMessage = '';
 
 	const onSubmit = async (e: Event) => {
 		e.preventDefault();
 		errorMessage = '';
+		successMessage = '';
 
-		if (password !== confirmPassword) {
+		if (password !== passwordConfirm) {
 			errorMessage = 'Passwords do not match';
 			return;
 		}
 
 		try {
-			const user = await pb.collection('users').create({
-				email,
-				password,
-				passwordConfirm: confirmPassword,
+			const response = await fetch('/api/sign-up', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email, password, passwordConfirm })
 			});
-			
-			await pb.collection('users').requestVerification(email);
-			
-			// Instead of redirecting, show a success message
-			successMessage = 'Account created successfully. Please check your email to verify your account before signing in.';
+
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(errorData.message || 'An error occurred during sign up');
+			}
+
+			const result = await response.json();
+
+			if (result.success) {
+				successMessage = 'Account created successfully. Please check your email to verify your account before signing in.';
+				// Optionally, you can redirect to the sign-in page after a short delay
+				setTimeout(() => goto('/authentication/sign-in'), 5000);
+			} else {
+				errorMessage = result.message || 'An error occurred during sign up';
+			}
 		} catch (err) {
 			console.error('Error:', err);
 			errorMessage = err.message || 'An error occurred during sign up';
@@ -99,7 +110,7 @@
 			<Input
 				type="password"
 				name="confirm-password"
-				bind:value={confirmPassword}
+				bind:value={passwordConfirm}
 				placeholder="••••••••"
 				required
 				class="border outline-none dark:border-gray-600 dark:bg-gray-700"

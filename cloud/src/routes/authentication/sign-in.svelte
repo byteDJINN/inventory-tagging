@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { Label, Input, Alert } from 'flowbite-svelte';
 	import SignIn from '../utils/authentication/SignIn.svelte';
-	import { pb } from '$lib/pocketbase';
-	import { goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 
 	let title = 'Sign in to platform';
 	let site = {
@@ -28,16 +27,34 @@
 		errorMessage = '';
 
 		try {
-			const authData = await pb.collection('users').authWithPassword(email, password);
+			console.log('Attempting to sign in...');
+			const response = await fetch('/api/sign-in', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email, password })
+			});
+
+			console.log('Response status:', response.status);
 			
-			if (authData.record.verified) {
-				goto('/dashboard'); // Redirect to dashboard or home page
+			if (!response.ok) {
+				const responseText = await response.text();
+				console.error('Response text:', responseText);
+				throw new Error(`HTTP error! status: ${response.status}`);
+			}
+
+			const result = await response.json();
+			console.log('Sign-in result:', result);
+
+			if (result.success) {
+				console.log('Auth successful, user:', result.user);
+				await invalidateAll();
+				goto('/dashboard');
 			} else {
-				errorMessage = 'Please verify your email before logging in. Check your inbox for the verification link.';
+				errorMessage = result.message || 'Authentication failed';
 			}
 		} catch (err) {
-			console.error('Error:', err);
-			errorMessage = 'Invalid email or password';
+			console.error('Sign-in error:', err);
+			errorMessage = 'An error occurred during sign-in. Please try again.';
 		}
 	};
 </script>
