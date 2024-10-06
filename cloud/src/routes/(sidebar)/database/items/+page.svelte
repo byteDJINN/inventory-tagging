@@ -1,43 +1,32 @@
 <script lang="ts">
-	import { Breadcrumb, BreadcrumbItem, Button, Checkbox, Drawer, Heading, Input, Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell, Toolbar, ToolbarButton, MultiSelect, Spinner } from 'flowbite-svelte';
-	import { CogSolid, DotsVerticalOutline, EditOutline, ExclamationCircleSolid, TrashBinSolid, CirclePlusOutline, ChevronDownOutline, ChevronUpOutline, PlusOutline, MinusOutline, TagSolid } from 'flowbite-svelte-icons';
+	import { Breadcrumb, BreadcrumbItem, Button, Checkbox, Drawer, Heading, Input, Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell, Toolbar, ToolbarButton, Spinner } from 'flowbite-svelte';
+	import { CogSolid, DotsVerticalOutline, EditOutline, ExclamationCircleSolid, TrashBinSolid, CirclePlusOutline, ChevronDownOutline, ChevronUpOutline } from 'flowbite-svelte-icons';
 	import type { ComponentType } from 'svelte';
 	import { sineIn } from 'svelte/easing';
 	import Item from './Item.svelte';
 	import { onMount } from 'svelte';
 	import { pb } from '$lib/pocketbase';
-	import AttributeSelector from './AttributeSelector.svelte';
 
 	let hidden: boolean = true;
 	let drawerComponent: ComponentType = Item;
-	let drawerItem: any = null;
+	let selectedItem: any = null;
 
 	let items: {
 		id: string,
 		tagID: string,
-		styleID: string,
+		name: string,
+		size: string,
+		colour: string,
 		price: number,
-		sold: string | null,
-		style?: { name: string }
+		timeSold: string | null
 	}[] = [];
-	let selectedItem: any = null;
 	let searchTerm: string = '';
 
 	let styles: {
-		id: string,
 		name: string,
-		description: string,
-		items: {
-			id: string,
-			tagID: string,
-			price: number,
-			sold: string | null,
-			attributes: string[]
-		}[]
+		items: typeof items
 	}[] = [];
 	let expandedStyles: Set<string> = new Set();
-
-	let availableAttributes: string[] = [];
 
     let updateQueue: (() => Promise<void>)[] = [];
     let isUpdating = false;
@@ -45,53 +34,41 @@
     $: console.log(updateQueue);
 
 	onMount(async () => {
-		const fetchedItems = await pb.collection("item").getFullList();
-		const fetchedStyles = await pb.collection("style").getFullList();
-		const fetchedItemAttributes = await pb.collection("itemattribute").getFullList({
-			expand: 'attributeID'
-		});
-		const fetchedAttributes = await pb.collection("attribute").getFullList();
+		const fetchedItems = await pb.collection("items").getFullList();
 
-		availableAttributes = fetchedAttributes.map(attr => `${attr.type}: ${attr.value}`);
+		// Group items by name (which now represents the style)
+		const groupedItems = fetchedItems.reduce((acc, item) => {
+			if (!acc[item.name]) {
+				acc[item.name] = [];
+			}
+			acc[item.name].push(item);
+			return acc;
+		}, {});
 
-		styles = fetchedStyles.map(style => ({
-			...style,
-			items: fetchedItems.filter(item => item.styleID === style.id).map(item => ({
-				...item,
-				attributes: fetchedItemAttributes
-					.filter(ia => ia.itemID === item.id)
-					.map(ia => `${ia.expand.attributeID.type}: ${ia.expand.attributeID.value}`)
-			}))
+		styles = Object.entries(groupedItems).map(([name, items]) => ({
+			name,
+			items: items as typeof fetchedItems
 		}));
 
 		styles.sort((a, b) => a.name.localeCompare(b.name));
-
 	});
 
 	function calculateRelevance(item: any, searchTerms: string[]): number {
 		let score = 0;
 		const lowercaseTagID = item.tagID.toLowerCase();
-		const lowercaseStyleName = item.style?.name.toLowerCase() || '';
-		const lowercaseStyleDescription = item.style?.description.toLowerCase() || '';
+		const lowercaseName = item.name.toLowerCase();
+		const lowercaseSize = item.size.toLowerCase();
+		const lowercaseColour = item.colour.toLowerCase();
 		const price = item.price.toString();
-		const soldDate = item.sold ? new Date(item.sold).toLocaleDateString('en-AU').toLowerCase() : '';
+		const soldDate = item.timeSold ? new Date(item.timeSold).toLocaleDateString('en-AU').toLowerCase() : '';
 
 		for (const term of searchTerms) {
-			if (lowercaseTagID.includes(term)) {
-				score += (term.length / lowercaseTagID.length);
-			}
-			if (lowercaseStyleName.includes(term)) {
-				score += (term.length / lowercaseStyleName.length);
-			}
-			if (lowercaseStyleDescription.includes(term)) {
-				score += (term.length / lowercaseStyleDescription.length) * 0.5; // Lower weight for description
-			}
-			if (price.includes(term)) {
-				score += (term.length / price.length); // Relative match for price
-			}
-			if (soldDate.includes(term)) {
-				score += (term.length / soldDate.length); // Relative match for sold date
-			}
+			if (lowercaseTagID.includes(term)) score += (term.length / lowercaseTagID.length);
+			if (lowercaseName.includes(term)) score += (term.length / lowercaseName.length);
+			if (lowercaseSize.includes(term)) score += (term.length / lowercaseSize.length);
+			if (lowercaseColour.includes(term)) score += (term.length / lowercaseColour.length);
+			if (price.includes(term)) score += (term.length / price.length);
+			if (soldDate.includes(term)) score += (term.length / soldDate.length);
 		}
 		return score;
 	}
@@ -99,8 +76,8 @@
 	$: sortedStyles = searchTerm
 		? [...styles].sort((a, b) => {
 				const terms = searchTerm.toLowerCase().split(' ');
-				const maxScoreA = Math.max(...a.items.map(item => calculateRelevance({...item, style: a}, terms)));
-				const maxScoreB = Math.max(...b.items.map(item => calculateRelevance({...item, style: b}, terms)));
+				const maxScoreA = Math.max(...a.items.map(item => calculateRelevance(item, terms)));
+				const maxScoreB = Math.max(...b.items.map(item => calculateRelevance(item, terms)));
 				return maxScoreB - maxScoreA;
 			})
 		: styles;
@@ -109,8 +86,8 @@
 		if (!searchTerm) return style.items;
 		const terms = searchTerm.toLowerCase().split(' ');
 		return [...style.items].sort((a, b) => {
-			const scoreA = calculateRelevance({...a, style}, terms);
-			const scoreB = calculateRelevance({...b, style}, terms);
+			const scoreA = calculateRelevance(a, terms);
+			const scoreB = calculateRelevance(b, terms);
 			return scoreB - scoreA;
 		});
 	};
@@ -127,87 +104,16 @@
 		easing: sineIn
 	};
 
-	function toggleStyle(styleId: string) {
-		if (expandedStyles.has(styleId)) {
-			expandedStyles.delete(styleId);
+	function toggleStyle(styleName: string) {
+		if (expandedStyles.has(styleName)) {
+			expandedStyles.delete(styleName);
 		} else {
-			expandedStyles.add(styleId);
+			expandedStyles.add(styleName);
 		}
 		expandedStyles = expandedStyles;
 	}
 
-	async function updateItemAttributes(itemId: string, selection: {name: string, value: string}[]) {
-		let newAttributes: string[] = selection.map(item => item.value);
-		
-		// Fetch current attributes for the item from the database
-		const currentItemAttributes = await pb.collection("itemattribute").getFullList({
-			filter: `itemID="${itemId}"`,
-			expand: 'attributeID'
-		});
-
-		const currentAttributes = currentItemAttributes.map(ia => 
-			`${ia.expand.attributeID.type}: ${ia.expand.attributeID.value}`
-		);
-
-        // if they are the same dont continue
-        if (currentAttributes.length === newAttributes.length && currentAttributes.every(attr => newAttributes.includes(attr))) {
-            return;
-        }
-		
-
-		// Attributes to add
-		const attributesToAdd = newAttributes.filter(attr => !currentAttributes.includes(attr));
-
-		// Attributes to remove
-		const attributesToRemove = currentItemAttributes.filter(ia => 
-			!newAttributes.includes(`${ia.expand.attributeID.type}: ${ia.expand.attributeID.value}`)
-		);
-
-		// Remove attributes
-		for (const ia of attributesToRemove) {
-			await pb.collection("itemattribute").delete(ia.id);
-		}
-
-		// Add new attributes
-		for (const attr of attributesToAdd) {
-			const [type, value] = attr.split(': ');
-			const attribute = await pb.collection("attribute").getFirstListItem(`type="${type}" && value="${value}"`);
-			await pb.collection("itemattribute").create({
-				itemID: itemId,
-				attributeID: attribute.id
-			});
-		}
-
-		// After updating, refresh the item's attributes
-		const updatedItemAttributes = await pb.collection("itemattribute").getFullList({
-			filter: `itemID="${itemId}"`,
-			expand: 'attributeID'
-		});
-
-
-		// Update the item in the styles array
-		styles = styles.map(style => ({
-			...style,
-			items: style.items.map(item => 
-				item.id === itemId 
-					? {
-							...item,
-							attributes: updatedItemAttributes.map(ia => 
-								`${ia.expand.attributeID.type}: ${ia.expand.attributeID.value}`
-							)
-						}
-					: item
-			)
-		}));
-	}
-
-	function openAttributeSelector(item: any) {
-		drawerComponent = AttributeSelector;
-		drawerItem = item;
-		hidden = false;
-	}
-
-        // Debounce function
+    // Debounce function
     function debounce(func: Function, delay: number) {
         let timeoutId: NodeJS.Timeout;
         return (...args: any[]) => {
@@ -217,15 +123,11 @@
     }
 
     // Queue update function
-    const queueUpdate = debounce((selectedAttributes: string[]) => {
-        if (drawerItem == null) {
-            return ;
-        }
-        updateQueue = [...updateQueue, async () => {
-            await updateItemAttributes(drawerItem.id, selectedAttributes.map(attr => ({ name: attr, value: attr })));
-        }];
+    const queueUpdate = (update: () => Promise<void>, immediateUpdate: () => void) => {
+        immediateUpdate();
+        updateQueue = [...updateQueue, update];
         processQueue();
-    }, 300);
+    };
 
     // Process queue function
     async function processQueue() {
@@ -238,6 +140,27 @@
         }
         isUpdating = false;
     }
+
+	function updateStyles(item: any, isNew: boolean) {
+		const styleIndex = styles.findIndex(style => style.name === item.name);
+		if (styleIndex === -1) {
+			// New style
+			styles = [...styles, { name: item.name, items: [item] }];
+		} else {
+			if (isNew) {
+				// New item for existing style
+				styles[styleIndex].items = [...styles[styleIndex].items, item];
+			} else {
+				// Update existing item
+				const itemIndex = styles[styleIndex].items.findIndex(i => i.id === item.id);
+				if (itemIndex !== -1) {
+					styles[styleIndex].items[itemIndex] = item;
+				}
+			}
+			styles = [...styles];
+		}
+		styles.sort((a, b) => a.name.localeCompare(b.name));
+	}
 
 </script>
 
@@ -263,22 +186,20 @@
     <div class="pl-4">
 	<Table>
 		<TableHead class="border-y border-gray-200 bg-gray-100 dark:border-gray-700">
-			<TableHeadCell class="ps-4 font-normal w-8"></TableHeadCell>
 			<TableHeadCell class="ps-4 font-normal w-1/4">Style</TableHeadCell>
-			<TableHeadCell class="ps-4 font-normal w-1/2">Description</TableHeadCell>
+			<TableHeadCell class="ps-4 font-normal w-1/4">Stock</TableHeadCell>
+			<TableHeadCell class="ps-4 font-normal w-1/4">Sold</TableHeadCell>
 			<TableHeadCell class="ps-4 font-normal w-1/4">Actions</TableHeadCell>
 		</TableHead>
 		<TableBody>
 			{#each sortedStyles as style}
 				<TableBodyRow class="text-base">
-					<TableBodyCell class="p-4"></TableBodyCell>
 					<TableBodyCell class="p-4">{style.name}</TableBodyCell>
-					<TableBodyCell class="max-w-sm text-sm overflow-hidden truncate p-4 text-gray-500 dark:text-gray-400 xl:max-w-xs">
-                        {style.description}
-					</TableBodyCell>
+					<TableBodyCell class="p-4">{style.items.filter(item => !item.timeSold).length}</TableBodyCell>
+					<TableBodyCell class="p-4">{style.items.filter(item => item.timeSold).length}</TableBodyCell>
 					<TableBodyCell class="space-x-2">
-						<Button size="xs" class="gap-2 px-3" on:click={() => toggleStyle(style.id)}>
-							{#if expandedStyles.has(style.id)}
+						<Button size="xs" class="gap-2 px-3" on:click={() => toggleStyle(style.name)}>
+							{#if expandedStyles.has(style.name)}
 								<ChevronUpOutline size="sm" /> Hide Items
 							{:else}
 								<ChevronDownOutline size="sm" /> Show Items
@@ -286,43 +207,36 @@
 						</Button>
 					</TableBodyCell>
 				</TableBodyRow>
-				{#if expandedStyles.has(style.id)}
+				{#if expandedStyles.has(style.name)}
 					<TableBodyRow>
 						<TableBodyCell colspan="4" class="p-0 pl-[4%]">
 							<Table>
 								<TableHead class="bg-gray-100 dark:border-gray-700">
-									<TableHeadCell class="ps-8 font-normal w-1/5">Tag ID</TableHeadCell>
-									<TableHeadCell class="ps-8 font-normal w-1/5">Price</TableHeadCell>
-									<TableHeadCell class="ps-8 font-normal w-1/5">Sold</TableHeadCell>
-									<TableHeadCell class="ps-8 font-normal w-2/5">Attributes</TableHeadCell>
+									<TableHeadCell class="ps-8 font-normal w-1/6">Tag ID</TableHeadCell>
+									<TableHeadCell class="ps-8 font-normal w-1/6">Size</TableHeadCell>
+									<TableHeadCell class="ps-8 font-normal w-1/6">Colour</TableHeadCell>
+									<TableHeadCell class="ps-8 font-normal w-1/6">Price</TableHeadCell>
+									<TableHeadCell class="ps-8 font-normal w-1/6">Sold</TableHeadCell>
+									<TableHeadCell class="ps-8 font-normal w-1/6">Actions</TableHeadCell>
 								</TableHead>
 								<TableBody>
 									{#each sortedItems(style) as item}
 										<TableBodyRow>
 											<TableBodyCell class="ps-8">{item.tagID}</TableBodyCell>
-											<TableBodyCell>${item.price.toFixed(2)}</TableBodyCell>
+											<TableBodyCell class="ps-8">{item.size}</TableBodyCell>
+											<TableBodyCell class="ps-8">{item.colour}</TableBodyCell>
+											<TableBodyCell>${item.price}</TableBodyCell>
 											<TableBodyCell>
-												{#if item.sold}
-													{new Date(item.sold).toLocaleDateString('en-AU')}
+												{#if item.timeSold}
+													{new Date(item.timeSold).toLocaleDateString('en-AU')}
 												{:else}
 													Not sold
 												{/if}
 											</TableBodyCell>
-											<TableBodyCell class="max-w-xs">
-												<div class="flex items-center">
-													<div class="max-h-16 rounded p-1 w-full overflow-y-auto overflow-x-hidden text-sm hover:bg-gray-100 hover:cursor-pointer"
-                                                     on:click={() => openAttributeSelector(item)}>
-														{#if item.attributes.length > 0}
-															<ul>
-																{#each item.attributes.sort((a, b) => a.localeCompare(b)) as attribute}
-																	<li>{attribute}</li>
-																{/each}
-															</ul>
-														{:else}
-															<span class="text-gray-500">No attributes</span>
-														{/if}
-													</div>
-												</div>
+											<TableBodyCell>
+												<Button size="xs" class="gap-2" on:click={() => toggle(Item, item)}>
+													<EditOutline size="sm" /> Edit
+												</Button>
 											</TableBodyCell>
 										</TableBodyRow>
 									{/each}
@@ -341,10 +255,8 @@
 	<svelte:component 
 		this={drawerComponent} 
 		bind:hidden 
-        {drawerItem}
-        {updateItemAttributes}
-		{availableAttributes}
-        {updateQueue}
-        {queueUpdate}
+        selectedItem={selectedItem}
+		{queueUpdate}
+        {updateStyles}
 	/>
 </Drawer>
