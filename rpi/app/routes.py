@@ -1,14 +1,10 @@
-# Flask server
-# python app.py & python GPIO_handler.py &
+from app import app
+from flask import render_template, jsonify, request
 
-from flask import Flask, render_template, jsonify, request
-
-app = Flask(__name__)
 
 latest_device_data = {}
 button_press_count = 0
 
-# Flask routes
 @app.route('/receive-data', methods=['POST'])
 def receive_data():
     global latest_device_data
@@ -21,6 +17,15 @@ def receive_data():
 def index():
     return render_template('index.html')
 
+@app.route('/checkout')
+def checkout():
+    return render_template('checkout.html')
+
+@app.route('/add-product')
+def add_product():
+    return render_template('add_inventory.html')
+
+
 @app.route('/get-data', methods=['GET'])
 def get_data():
     return jsonify(latest_device_data)
@@ -31,8 +36,3 @@ def button_press_api():
     button_press_count += 1
     print(f"Button press registered. Total count: {button_press_count}")
     return jsonify({'message': 'Button press registered successfully'})
-
-if __name__ == '__main__':
-
-    # Run Flask app
-    app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)
