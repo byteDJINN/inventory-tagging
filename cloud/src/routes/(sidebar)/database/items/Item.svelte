@@ -1,93 +1,54 @@
 <script lang="ts">
-	import { Button, CloseButton, Heading, Input, Label, Search, Checkbox } from 'flowbite-svelte';
+	import { Button, CloseButton, Heading, Input, Label, Checkbox } from 'flowbite-svelte';
 	import { CloseOutline } from 'flowbite-svelte-icons';
-	import { createEventDispatcher, onMount } from 'svelte';
 	import { pb } from '$lib/pocketbase';
 
 	export let hidden: boolean = true;
 	export let selectedItem: any = null;
-
-	const dispatch = createEventDispatcher();
+	export let queueUpdate: (update: () => Promise<void>, immediateUpdate: () => void) => void;
+	export let updateStyles: (item: any, isNew: boolean) => void;
 
 	let tagID: string = selectedItem?.tagID || '';
-	let styleID: string = selectedItem?.styleID || '';
+	let name: string = selectedItem?.name || '';
+	let size: string = selectedItem?.size || '';
+	let colour: string = selectedItem?.colour || '';
 	let price: number = selectedItem?.price || 0;
-	let sold: string | null = selectedItem?.sold || null;
-	let isSold: boolean = selectedItem?.sold ? true : false;
-
-	let styles: { id: string; name: string }[] = [];
-	let filteredStyles: { id: string; name: string }[] = [];
-	let styleSearchTerm: string = '';
-
-	let showStyleDropdown = false;
-
-	function toggleStyleDropdown() {
-		showStyleDropdown = !showStyleDropdown;
-	}
-
-	function selectStyle(style: { id: string; name: string }) {
-		styleID = style.id;
-		styleSearchTerm = style.name;
-		showStyleDropdown = false;
-	}
-
-	onMount(async () => {
-		styles = await pb.collection('style').getFullList({ sort: 'name' });
-		filteredStyles = styles;
-		
-		// Set the default style for the dropdown if editing an existing item
-		if (selectedItem && selectedItem.styleID) {
-			const selectedStyle = styles.find(style => style.id === selectedItem.styleID);
-			if (selectedStyle) {
-				styleSearchTerm = selectedStyle.name;
-			}
-		}
-	});
-
-	function calculateRelevance(style: any, searchTerms: string[]): number {
-		let score = 0;
-		const lowercaseName = style.name.toLowerCase();
-
-		for (const term of searchTerms) {
-			if (lowercaseName.includes(term)) {
-				score += (term.length / lowercaseName.length);
-			}
-		}
-		return score;
-	}
-
-	$: {
-		if (styleSearchTerm) {
-			const terms = styleSearchTerm.toLowerCase().split(' ');
-			filteredStyles = styles
-				.map(style => ({ ...style, score: calculateRelevance(style, terms) }))
-				.sort((a, b) => b.score - a.score);
-		} else {
-			filteredStyles = styles;
-		}
-	}
+	let timeSold: string | null = selectedItem?.timeSold || null;
+	let isSold: boolean = selectedItem?.timeSold ? true : false;
 
 	function handleSoldChange(event: Event) {
 		const target = event.target as HTMLInputElement;
 		if (target.checked) {
-			sold = new Date().toISOString();
+			timeSold = new Date().toISOString();
 		} else {
-			sold = null;
+			timeSold = null;
 		}
 	}
 
-	async function handleSubmit() {
-		try {
-			const data = { tagID, styleID, price, sold };
-			if (selectedItem) {
-				await pb.collection('item').update(selectedItem.id, data);
-			} else {
-				await pb.collection('item').create(data);
+	function handleSubmit() {
+		const newItem = { id: selectedItem?.id, tagID, name, size, colour, price, timeSold };
+		const isNew = !selectedItem;
+
+		const updateFunction = async () => {
+			try {
+				if (selectedItem) {
+					await pb.collection('items').update(selectedItem.id, newItem);
+				} else {
+					const createdItem = await pb.collection('items').create(newItem);
+					newItem.id = createdItem.id;
+				}
+			} catch (error) {
+				console.error('Error updating/creating item:', error);
+				// Here you might want to revert the UI change if the database update fails
 			}
-			dispatch('itemUpdated');
-		} catch (error) {
-			console.error('Error updating/creating item:', error);
-		}
+		};
+
+		const immediateUpdate = () => {
+			updateStyles(newItem, isNew);
+			hidden = true;
+		};
+
+		queueUpdate(updateFunction, immediateUpdate);
 	}
 </script>
 
@@ -113,27 +74,36 @@
 		</Label>
 
 		<Label class="space-y-2">
-			<span>Style</span>
-			<div class="relative">
-				<Search class="font-normal"
-                    size="md"
-					bind:value={styleSearchTerm}
-					placeholder="Search for a style"
-					on:click={toggleStyleDropdown}
-				/>
-				{#if showStyleDropdown}
-					<div class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-						{#each filteredStyles as style}
-							<div
-								class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-								on:click={() => selectStyle(style)}
-							>
-								{style.name}
-							</div>
-						{/each}
-					</div>
-				{/if}
-			</div>
+			<span>Name (Style)</span>
+			<Input
+				name="name"
+				class="border font-normal outline-none"
+				placeholder="Enter name/style"
+				required
+				bind:value={name}
+			/>
+		</Label>
+
+		<Label class="space-y-2">
+			<span>Size</span>
+			<Input
+				name="size"
+				class="border font-normal outline-none"
+				placeholder="Enter size"
+				required
+				bind:value={size}
+			/>
+		</Label>
+
+		<Label class="space-y-2">
+			<span>Colour</span>
+			<Input
+				name="colour"
+				class="border font-normal outline-none"
+				placeholder="Enter colour"
+				required
+				bind:value={colour}
+			/>
 		</Label>
 
 		<Label class="space-y-2">

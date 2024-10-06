@@ -54,8 +54,6 @@
 			name: 'Database',
 			icon: RectangleListSolid,
 			children: {
-				Styles: '/database/styles',
-				Attributes: '/database/attributes',
 				Items: '/database/items'
 
 			}
@@ -69,48 +67,14 @@
 				'Forgot password': '/authentication/forgot-password',
 			}
 		},
-		{ name: 'Settings', icon: CogOutline, href: '/settings' },
-		{
-			name: 'Pages',
-			icon: FileChartBarSolid,
-			children: {
-				Pricing: '/pages/pricing',
-				Maintenance: '/errors/400',
-				'404 not found': '/errors/404',
-				'500 server error': '/errors/500'
-			}
-		},
-		{
-			name: 'Playground',
-			icon: WandMagicSparklesOutline,
-			children: {
-				Stacked: '/playground/stacked',
-				Sidebar: '/playground/sidebar'
-			}
-		}
 	];
 
 	let links = [
 		{
 			label: 'GitHub Repository',
-			href: 'https://github.com/themesberg/flowbite-svelte-admin-dashboard',
+			href: 'https://github.com/byteDJINN/inventory-tagging',
 			icon: GithubSolid
 		},
-		{
-			label: 'Flowbite Svelte',
-			href: 'https://flowbite-svelte.com/docs/pages/quickstart',
-			icon: ClipboardListSolid
-		},
-		{
-			label: 'Components',
-			href: 'https://flowbite-svelte.com/docs/components/accordion',
-			icon: LayersSolid
-		},
-		{
-			label: 'Support',
-			href: 'https://github.com/themesberg/flowbite-svelte-admin-dashboard/issues',
-			icon: LifeSaverSolid
-		}
 	];
 	let dropdowns = Object.fromEntries(Object.keys(posts).map((x) => [x, false]));
 </script>
