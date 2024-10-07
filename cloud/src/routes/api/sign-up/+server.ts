@@ -11,6 +11,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
             passwordConfirm
         });
 
+        await locals.pb.collection('users').requestVerification(email);
+
         return json({ success: true, user: newUser });
     } catch (err) {
         console.error('Sign-up error:', err);
