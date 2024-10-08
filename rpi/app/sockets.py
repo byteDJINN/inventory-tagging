@@ -21,7 +21,7 @@ def handle_connect():
 
 # Define more event handlers as needed
 
-@socketio.on('scan')
+@socketio.on('receive')
 def handle_checkout(message):
     # Handle incoming message from the client
     print('Received message:', message)
@@ -38,11 +38,9 @@ x = [{
      }]
 def background_task():
     """Example of how to send server-generated events to clients."""
-    while True:
         x[-1]['product_id'] = str(int(x[-1]['product_id']) + 1)
         x[-1]['price'] = str(float(x[-1]['price']) + 1)
         socketio.emit('scan', json.dumps(x[-1])  )
-        time.sleep(1)
 thread = threading.Thread(target=background_task)
 thread.daemon = True
 thread.start()
