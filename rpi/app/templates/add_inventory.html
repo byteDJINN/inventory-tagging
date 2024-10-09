@@ -38,7 +38,7 @@
 
             <div class="mt-3">
                 <label for="product-price">Price:</label>
-                <input type="text" v-model="price" class="form-control">
+                <input id = "price" type="text" v-model="price" class="form-control">
             </div>
 
         </div>
@@ -53,7 +53,6 @@
                     <button class="btn btn-danger ms-3" @click="deleteItemFromList(item)">
                         delete
                     </button>
-
                 </li>
             </ul>
         </template>
@@ -68,6 +67,7 @@
     const totalPrice = computed(() => {
         return items.reduce((sum, item) => sum + parseFloat(item.price), 0).toFixed(2);
     });
+    const productTitle = ref('')
     const app = createApp({
         data() {
             return {
@@ -76,7 +76,7 @@
                 totalPrice,
                 productId: ref(''),
                 size: ref(''),
-                productTitle: ref(''),
+                productTitle: productTitle,
                 price: ref(''),
                 colour: ref(''),
             }
@@ -111,7 +111,7 @@
     });
     app.mount('#app')
 
-    const socket = io();
+
     socket.on('connect', function () {
         console.log('Connected');
     });
@@ -119,6 +119,10 @@
         console.log(data);
         items.push(JSON.parse(data))
     });
+    socket.on("ocr",function(data){
+          console.log("OCR",data);
+          productTitle.value = data
+          })
 </script>
 {% endraw %}
 {% endblock %}

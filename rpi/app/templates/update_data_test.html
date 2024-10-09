@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Sell State Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3"></script>
+    <script src="https://cdn.jsdelivr.net/gh/pocketbase/js-sdk@master/dist/pocketbase.umd.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <h1>Update Sell State</h1>
+        <input v-model="tagID" placeholder="Enter Tag ID" />
+        <button @click="updatesellstate">Update Sell State</button>
+        <p>{{ message }}</p>
+    </div>
+
+    <script>
+        const { createApp, ref } = Vue;
+        const pocketbase = new PocketBase('https://inventory.bytedjinn.com/db'); // 替换为你的 PocketBase URL
+
+        createApp({
+            setup() {
+                const tagID = ref('');
+                const message = ref('');
+
+                async function updatesellstate() {
+                    try {
+                        // 检查包含指定 tagID 的记录
+                        const records = await pb.collection('items').getList(1,2,{
+                            filter: `tagID = "${tagID.value}"`
+                        });
+                        console.log("find records")
+                        // 检查是否找到记录
+                        if (records.items.length > 0) {
+                            for (const record of records.items) {
+                                // 更新 timesold 字段
+                                const updatedRecord = await pb.collection("items").update(record.id, {
+                                    timeSold: new Date().toISOString() // 使用当前时间
+                                });
+                                console.log('Updated Record:', updatedRecord);
+                            }
+                            message.value = 'Records updated successfully.';
+                        } else {
+                            message.value = 'No records found with the specified tagID.';
+                        }
+                    } catch (error) {
+                        console.error('Error updating timesold:', error);
+                        message.value = 'Error updating timesold.';
+                    }
+                }
+
+                return {
+                    tagID,
+                    updatesellstate,
+                    message
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
