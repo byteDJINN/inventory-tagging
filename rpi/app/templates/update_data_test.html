@@ -23,7 +23,7 @@
 
     <script>
         const { createApp, ref } = Vue;
-        const pocketbase = new PocketBase('https://inventory.bytedjinn.com/db'); // 替换为你的 PocketBase URL
+        const pocketbase = new PocketBase('https://inventory.bytedjinn.com/db'); 
 
         createApp({
             setup() {
@@ -32,17 +32,17 @@
 
                 async function updatesellstate() {
                     try {
-                        // 检查包含指定 tagID 的记录
+                        // First, get records that has designated tagid
                         const records = await pb.collection('items').getList(1,2,{
-                            filter: `tagID = "${tagID.value}"`
+                            filter: `tagID = "${tagID.value}"` 
                         });
                         console.log("find records")
-                        // 检查是否找到记录
+                        // check if getting the record 
                         if (records.items.length > 0) {
                             for (const record of records.items) {
-                                // 更新 timesold 字段
+                                // update record attribute
                                 const updatedRecord = await pb.collection("items").update(record.id, {
-                                    timeSold: new Date().toISOString() // 使用当前时间
+                                    timeSold: new Date().toISOString() // current time
                                 });
                                 console.log('Updated Record:', updatedRecord);
                             }

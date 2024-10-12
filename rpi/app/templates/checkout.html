@@ -35,8 +35,7 @@
 <script>
 import { onMounted, onBeforeUnmount } from 'vue';
 export default{
-    tagIdToUpdate = 
-    /*set socket off when page has not been loaded in case influence on this part when we scan card on other page*/
+    
     function adddata(){
         console.log(data);
         items.push(JSON.parse(data));
@@ -45,16 +44,16 @@ export default{
     function updatesellstate(){
         try {
         //check records that includes tagid we want to get 
-        const records = await pocketbase.records.getList('items', {
+        const records = await pb.collection('items').getList(1,2,{
             filter: `tagID = "${data.tagID}"`
         });
 
         // Check if record is found
         if (records.items.length > 0) {
             for (const record of records.items) {
-                // 更新 timesold 字段
-                const updatedRecord = await pocketbase.records.update(record.id, {
-                    timeSold: Date()
+                // update record 
+                const updatedRecord = await pb.collection("items").update(record.id, {
+                    timeSold: new Date().toISOString()
                 });
                 console.log('Updated Record:', updatedRecord);
             }
@@ -65,13 +64,14 @@ export default{
         console.error('Error updating timesold:', error);
     }
 }
+/*set socket off when page has not been loaded in case influence on this part when we scan card on other page*/
     const registerSocketEvents = () => {
     socket.on('connect', function () {
         console.log('Connected');
     });
     socket.on('scan', function (data) {
-             adddata()
-             
+             adddata();
+             updatesellstate();
     });
     };
 

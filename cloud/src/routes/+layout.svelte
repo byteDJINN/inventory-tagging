@@ -1,17 +1,18 @@
 <script>
 	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { checkAuth } from '$lib/auth';
+	import { writable } from 'svelte/store';
 
-	onMount(() => {
-		const unsubscribe = page.subscribe(($page) => {
-			if (!$page.data.user && !$page.url.pathname.startsWith('/authentication')) {
-				goto('/authentication/sign-in');
-			}
-		});
+	const isLoading = writable(true);
 
-		return unsubscribe;
+	onMount(async () => {
+		await checkAuth();
+		isLoading.set(false);
 	});
 </script>
 
-<slot />
+{#if $isLoading}
+<div></div>
+{:else}
+	<slot />
+{/if}

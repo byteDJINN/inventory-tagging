@@ -1,12 +1,11 @@
 <script lang="ts">
 	import { Breadcrumb, BreadcrumbItem, Button, Checkbox, Drawer, Heading, Input, Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell, Toolbar, ToolbarButton, Spinner } from 'flowbite-svelte';
-	import { CogSolid, DotsVerticalOutline, EditOutline, ExclamationCircleSolid, TrashBinSolid, FileCopySolid, CirclePlusOutline, ChevronDownOutline, ChevronUpOutline } from 'flowbite-svelte-icons';
+	import { CogSolid, DotsVerticalOutline, EditOutline, ExclamationCircleSolid, TrashBinSolid, CirclePlusOutline, ChevronDownOutline, ChevronUpOutline } from 'flowbite-svelte-icons';
 	import type { ComponentType } from 'svelte';
 	import { sineIn } from 'svelte/easing';
 	import Item from './Item.svelte';
 	import { onMount } from 'svelte';
 	import { pb } from '$lib/pocketbase';
-	import Footer from '../../Footer.svelte';
 
 	let hidden: boolean = true;
 	let drawerComponent: ComponentType = Item;
@@ -14,6 +13,7 @@
 
 	let items: {
 		id: string,
+		tagID: string,
 		name: string,
 		size: string,
 		colour: string,
@@ -55,6 +55,7 @@
 
 	function calculateRelevance(item: any, searchTerms: string[]): number {
 		let score = 0;
+		const lowercaseTagID = item.tagID.toLowerCase();
 		const lowercaseName = item.name.toLowerCase();
 		const lowercaseSize = item.size.toLowerCase();
 		const lowercaseColour = item.colour.toLowerCase();
@@ -62,6 +63,7 @@
 		const soldDate = item.timeSold ? new Date(item.timeSold).toLocaleDateString('en-AU').toLowerCase() : '';
 
 		for (const term of searchTerms) {
+			if (lowercaseTagID.includes(term)) score += (term.length / lowercaseTagID.length);
 			if (lowercaseName.includes(term)) score += (term.length / lowercaseName.length);
 			if (lowercaseSize.includes(term)) score += (term.length / lowercaseSize.length);
 			if (lowercaseColour.includes(term)) score += (term.length / lowercaseColour.length);
@@ -81,30 +83,12 @@
 		: styles;
 
 	$: sortedItems = (style: any) => {
-		if (!searchTerm) {
-			return [...style.items].sort((a, b) => {
-				// Sort unsold items first
-				if (!a.timeSold && b.timeSold) return -1;
-				if (a.timeSold && !b.timeSold) return 1;
-				// If both are sold, sort by sold time (most recent first)
-				if (a.timeSold && b.timeSold) {
-					return new Date(b.timeSold).getTime() - new Date(a.timeSold).getTime();
-				}
-				return 0;
-			});
-		}
+		if (!searchTerm) return style.items;
 		const terms = searchTerm.toLowerCase().split(' ');
 		return [...style.items].sort((a, b) => {
 			const scoreA = calculateRelevance(a, terms);
 			const scoreB = calculateRelevance(b, terms);
-			if (scoreA !== scoreB) return scoreB - scoreA;
-			// If relevance scores are equal, apply the same sorting as above
-			if (!a.timeSold && b.timeSold) return -1;
-			if (a.timeSold && !b.timeSold) return 1;
-			if (a.timeSold && b.timeSold) {
-				return new Date(b.timeSold).getTime() - new Date(a.timeSold).getTime();
-			}
-			return 0;
+			return scoreB - scoreA;
 		});
 	};
 
@@ -139,7 +123,8 @@
     }
 
     // Queue update function
-    const queueUpdate = (update: () => Promise<void>) => {
+    const queueUpdate = (update: () => Promise<void>, immediateUpdate: () => void) => {
+        immediateUpdate();
         updateQueue = [...updateQueue, update];
         processQueue();
     };
@@ -156,37 +141,25 @@
         isUpdating = false;
     }
 
-	function updateStyles(updatedItem: any) {
-		styles = styles.map(style => {
-			// Remove the item from its current style if it exists
-			style.items = style.items.filter(item => item.id !== updatedItem.id);
-			
-			// Add the item to its new style
-			if (style.name === updatedItem.name) {
-				style.items.push(updatedItem);
+	function updateStyles(item: any, isNew: boolean) {
+		const styleIndex = styles.findIndex(style => style.name === item.name);
+		if (styleIndex === -1) {
+			// New style
+			styles = [...styles, { name: item.name, items: [item] }];
+		} else {
+			if (isNew) {
+				// New item for existing style
+				styles[styleIndex].items = [...styles[styleIndex].items, item];
+			} else {
+				// Update existing item
+				const itemIndex = styles[styleIndex].items.findIndex(i => i.id === item.id);
+				if (itemIndex !== -1) {
+					styles[styleIndex].items[itemIndex] = item;
+				}
 			}
-			
-			return style;
-		});
-
-		// If the updated item's style doesn't exist, create a new style
-		if (!styles.some(style => style.name === updatedItem.name)) {
-			styles = [...styles, { name: updatedItem.name, items: [updatedItem] }];
+			styles = [...styles];
 		}
-		
-		// if any styles are empty delete them
-		styles = styles.filter(style => style.items.length > 0);
-
-		// Sort styles alphabetically
 		styles.sort((a, b) => a.name.localeCompare(b.name));
-
-		// Ensure the view updates
-		styles = styles;
-	}
-
-	function duplicateItem(item: any) {
-		const duplicatedItem = { ...item, id: null };
-		toggle(Item, duplicatedItem);
 	}
 
 </script>
@@ -239,15 +212,17 @@
 						<TableBodyCell colspan="4" class="p-0 pl-[4%]">
 							<Table>
 								<TableHead class="bg-gray-100 dark:border-gray-700">
+									<TableHeadCell class="ps-8 font-normal w-1/6">Tag ID</TableHeadCell>
 									<TableHeadCell class="ps-8 font-normal w-1/6">Size</TableHeadCell>
 									<TableHeadCell class="ps-8 font-normal w-1/6">Colour</TableHeadCell>
 									<TableHeadCell class="ps-8 font-normal w-1/6">Price</TableHeadCell>
 									<TableHeadCell class="ps-8 font-normal w-1/6">Sold</TableHeadCell>
-									<TableHeadCell class="ps-8 font-normal w-2/6">Actions</TableHeadCell>
+									<TableHeadCell class="ps-8 font-normal w-1/6">Actions</TableHeadCell>
 								</TableHead>
 								<TableBody>
 									{#each sortedItems(style) as item}
 										<TableBodyRow>
+											<TableBodyCell class="ps-8">{item.tagID}</TableBodyCell>
 											<TableBodyCell class="ps-8">{item.size}</TableBodyCell>
 											<TableBodyCell class="ps-8">{item.colour}</TableBodyCell>
 											<TableBodyCell>${item.price}</TableBodyCell>
@@ -262,9 +237,6 @@
 												<Button size="xs" class="gap-2" on:click={() => toggle(Item, item)}>
 													<EditOutline size="sm" /> Edit
 												</Button>
-												<Button size="xs" class="gap-2 ml-2" on:click={() => duplicateItem(item)}>
-													<FileCopySolid size="sm" /> Duplicate
-												</Button>
 											</TableBodyCell>
 										</TableBodyRow>
 									{/each}
@@ -278,7 +250,6 @@
 	</Table>
     </div>
 </main>
-<Footer />
 
 <Drawer placement="right" transitionType="fly" {transitionParams} bind:hidden>
 	<svelte:component 

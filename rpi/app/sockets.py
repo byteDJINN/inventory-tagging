@@ -31,31 +31,12 @@ def handle_connect():
 
 # Define more event handlers as needed
 
-@socketio.on('receive')
+@socketio.on('scan')
 def handle_checkout(message):
     # Handle incoming message from the client
     print('Received message:', message)
     # Perform necessary actions or send a response
 
-<<<<<<< HEAD
-x = [{
-     "product_id": "471580",
-     "colour": "blue",
-     "price": "24.90",
-     "size": "XS",
-     "category": "T-shirts",
-     "brand": "Uniqlo",
-     "title": "Uniqlo U AIRism Cotton Oversized Crew Neck Half Sleeve T-Shirt",
-     }]
-def background_task():
-    """Example of how to send server-generated events to clients."""
-        x[-1]['product_id'] = str(int(x[-1]['product_id']) + 1)
-        x[-1]['price'] = str(float(x[-1]['price']) + 1)
-        socketio.emit('scan', json.dumps(x[-1])  )
-thread = threading.Thread(target=background_task)
-thread.daemon = True
-thread.start()
-=======
 
 # def background_task():
 #     """Example of how to send server-generated events to clients."""
@@ -105,4 +86,3 @@ thread_scan.start()
 thread_mode = threading.Thread(target=listen_button_press, args=(socketio,btn,led))
 thread_mode.daemon = True
 thread_mode.start()
->>>>>>> 19433a2202f6cd3453832e6cb9527597592ef0f6

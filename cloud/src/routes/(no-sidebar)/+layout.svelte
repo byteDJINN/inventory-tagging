@@ -1,4 +1,5 @@
 <script>
+	import Footer from '../(no-sidebar)/Footer.svelte';
 	import Navbar from '../(sidebar)/Navbar.svelte';
 
 	import '../../app.pcss';
@@ -11,4 +12,5 @@
 </header>
 <div class="mx-auto max-w-screen-2xl pt-[70px]">
 	<slot />
+	<Footer />
 </div>

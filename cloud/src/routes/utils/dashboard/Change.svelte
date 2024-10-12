@@ -36,9 +36,9 @@
 <div class={divClass}>
 	<span class={color}>
 		{#if value > 0}
-			<span class="text-base leading-4">↑</span>{value.toFixed(2)}{unit}
+			<span class="text-base leading-4">↑</span>{value}{unit}
 		{:else if value < 0}
-			<span class="text-base leading-4">↓</span>{Math.abs(value).toFixed(2)}{unit}
+			<span class="text-base leading-4">↓</span>{Math.abs(value)}{unit}
 		{:else}
 			--
 		{/if}

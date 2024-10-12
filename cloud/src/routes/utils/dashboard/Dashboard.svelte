@@ -2,70 +2,87 @@
 	import thickbars from '../graphs/thickbars';
 	import ChartWidget from '../widgets/ChartWidget.svelte';
 	import { Card, Chart } from 'flowbite-svelte';
+	// import type { PageData } from '../../routes/(sidebar)/$types';
 	import type { PageData } from '../../(sidebar)/$types';
 	import Stats from './Stats.svelte';
+
+	import users from '../graphs/users';
 	import { onMount } from 'svelte';
-	import chart_options_func from '../../(sidebar)/dashboard/chart_options';
+	// import chart_options_func from '../../routes/(sidebar)/dashboard/chart_options';
+  import chart_options_func from '../../(sidebar)/dashboard/chart_options';
+	import ActivityList from './ActivityList.svelte';
 	import Change from './Change.svelte';
-	import { pb } from '$lib/pocketbase';
+	import Chat from './Chat.svelte';
+	import DesktopPc from './DesktopPc.svelte';
+	import Insights from './Insights.svelte';
+	import Traffic from './Traffic.svelte';
+	import Transactions from './Transactions.svelte';
 
 	export let data: PageData;
 
 	let chartOptions = chart_options_func(false);
-	let salesData = [];
-	let totalSales = 0;
-
-	onMount(async () => {
-		try {
-			const records = await pb.collection('items').getList(1, 50, {
-				sort: '-timeSold',
-				filter: 'timeSold != null'
-			});
-
-			const salesByDate = records.items.reduce((acc, item) => {
-				const date = new Date(item.timeSold).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' });
-				acc[date] = (acc[date] || 0) + item.price;
-				return acc;
-			}, {});
-
-			salesData = Object.entries(salesByDate).slice(0, 7).reverse().map(([date, sales]) => ({
-				x: date,
-				y: sales
-			}));
-
-			totalSales = salesData.reduce((sum, data) => sum + data.y, 0);
-
-			chartOptions.series = [{
-				name: 'Sales',
-				data: salesData,
-				color: '#EF562F'
-			}];
-
-			chartOptions.xaxis.categories = salesData.map(data => data.x);
-		} catch (error) {
-			console.error('Error fetching data:', error);
-		}
-	});
+	chartOptions.series = data.series;
 
 	let dark = false;
 
 	function handler(ev: Event) {
 		if ('detail' in ev) {
 			chartOptions = chart_options_func(ev.detail);
-			chartOptions.series = [{
-				name: 'Sales',
-				data: salesData,
-				color: '#EF562F'
-			}];
+			chartOptions.series = data.series;
 			dark = !!ev.detail;
 		}
 	}
 </script>
 
-<div class="space-y-4">
+<div class="mt-px space-y-4">
 	<div class="grid gap-4 xl:grid-cols-2 2xl:grid-cols-3">
-		<ChartWidget {chartOptions} title={`$${totalSales.toFixed(2)}`} subtitle="Sales this week" />
+		<ChartWidget {chartOptions} title="$45,385" subtitle="Sales this week" />
 
 		<Stats />
 	</div>
+	<div class="grid grid-cols-1 gap-4 xl:grid-cols-2 2xl:grid-cols-3">
+		<Card horizontal class="items-center justify-between" size="xl">
+			<div class="w-full">
+				<p>New products</p>
+				<p class="text-2xl font-bold leading-none text-gray-900 dark:text-white sm:text-3xl">
+					2,340
+				</p>
+				<Change size="sm" value={12.5} since="Since last month" />
+			</div>
+			<Chart options={thickbars} class="w-full" />
+		</Card>
+		<Card horizontal class="items-center justify-between" size="xl">
+			<div class="w-full">
+				<p>Users</p>
+				<p class="text-2xl font-bold leading-none text-gray-900 dark:text-white sm:text-3xl">
+					4,420
+				</p>
+				<Change size="sm" value={-3.4} since="Since last month" />
+			</div>
+			<Chart configFunc={users} class="w-full" />
+		</Card>
+		<Card horizontal class="items-center justify-between" size="xl">
+			<div class="w-full">
+				<p>Users</p>
+				<p class="text-2xl font-bold leading-none text-gray-900 dark:text-white sm:text-3xl">
+					4,120
+				</p>
+				<Change size="sm" value={-3.4} since="Since last month" class="w-full" />
+			</div>
+			<Chart configFunc={(d)=>{const x = users(d); x.plotOptions.bar.horizontal=true; return x}} class="w-full"/>
+		</Card>
+	</div>
+	<div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
+		<Chat />
+		<div class="flex flex-col gap-4">
+			<DesktopPc />
+			<Traffic {dark} />
+		</div>
+	</div>
+	<div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
+		<ActivityList />
+		<Insights />
+	</div>
+
+	<Transactions {dark} />
 </div>
