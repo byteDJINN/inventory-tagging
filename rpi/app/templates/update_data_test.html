@@ -33,7 +33,7 @@
                 async function updatesellstate() {
                     try {
                         // First, get records that has designated tagid
-                        const records = await pb.collection('items').getList(1,2,{
+                        const records = await pocketbase.collection('items').getList(1,2,{
                             filter: `tagID = "${tagID.value}"` 
                         });
                         console.log("find records")
@@ -41,7 +41,7 @@
                         if (records.items.length > 0) {
                             for (const record of records.items) {
                                 // update record attribute
-                                const updatedRecord = await pb.collection("items").update(record.id, {
+                                const updatedRecord = await pocketbase.collection("items").update(record.id, {
                                     timeSold: new Date().toISOString() // current time
                                 });
                                 console.log('Updated Record:', updatedRecord);
