@@ -13,6 +13,8 @@
 	export let mainDivClass =
 		'flex flex-col items-center justify-center px-6 pt-8 mx-auto md:h-screen pt:mt-0 dark:bg-gray-900';
 	export let cardH1Class = 'text-2xl font-bold text-gray-900 dark:text-white';
+
+	export let onGuestSignIn: () => void;
 </script>
 
 <main class={mainClass}>
@@ -37,7 +39,7 @@
 					</div>
 				{/if}
 				<Button type="submit" size="lg">{loginTitle}</Button>
-
+				<Button class="ml-4" type="button" size="lg" color="light" on:click={onGuestSignIn}>Sign in as Guest</Button>
 			</form>
 		</Card>
 	</div>

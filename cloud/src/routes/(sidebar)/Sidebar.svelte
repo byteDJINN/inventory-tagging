@@ -54,7 +54,8 @@
 			name: 'Database',
 			icon: RectangleListSolid,
 			children: {
-				Items: '/database/items'
+				"Items": '/database/items',
+				"Health": '/database/health',
 
 			}
 		},

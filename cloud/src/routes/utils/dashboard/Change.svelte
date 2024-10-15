@@ -20,11 +20,11 @@
 	};
 
 	const spanTextSize = {
-		xs: 'text-sm',
-		sm: 'text-base',
-		md: 'text-lg',
-		lg: 'text-xl',
-		xl: 'text-2xl'
+		xs: 'text-xs',
+		sm: 'text-sm',
+		md: 'text-base',
+		lg: 'text-lg',
+		xl: 'text-xl'
 	};
 
 	let divClass: string;

@@ -51,6 +51,12 @@
 			errorMessage = 'An error occurred during sign-in. Please try again.';
 		}
 	}; 
+
+	const onGuestSignIn = async () => {
+		email = 'guest@example.com';
+		password = 'guestguest';
+		await onSubmit(new Event('submit'));
+	};
 </script>
 
 <SignIn
@@ -63,6 +69,7 @@
 	{registerLink}
 	{createAccountTitle}
 	on:submit={onSubmit}
+	onGuestSignIn={onGuestSignIn}
 >
 	{#if errorMessage}
 		<Alert color="red" class="mb-4">{errorMessage}</Alert>
