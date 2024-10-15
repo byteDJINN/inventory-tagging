@@ -15,20 +15,14 @@
 	onMount(async () => {
 		await fetchDevices();
 		// Set up an interval to fetch devices every 10 seconds
-		setInterval(fetchDevices, 10000);
+		setInterval(fetchDevices, 2000);
 	});
 
 	async function fetchDevices() {
-		isUpdating = true;
 		const fetchedDevices = await pb.collection("health").getFullList({
 			sort: '-alive',
 		});
 		devices = fetchedDevices;
-		
-		// Keep "Updating..." visible for at least 3 seconds
-		setTimeout(() => {
-			isUpdating = false;
-		}, 3000);
 	}
 
 	function getTimeDifference(timestamp: string | null): string {
@@ -52,8 +46,8 @@
 		const now = new Date();
 		const lastSeen = new Date(timestamp);
 		const diffMs = now.getTime() - lastSeen.getTime();
-		const diffMins = Math.floor(diffMs / 60000);
-		return diffMins < 1;
+		const diffSeconds = Math.floor(diffMs / 1000);
+		return diffSeconds <= 8;
 	}
 
 	$: filteredDevices = devices
