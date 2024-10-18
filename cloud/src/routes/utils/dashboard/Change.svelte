@@ -20,11 +20,11 @@
 	};
 
 	const spanTextSize = {
-		xs: 'text-sm',
-		sm: 'text-base',
-		md: 'text-lg',
-		lg: 'text-xl',
-		xl: 'text-2xl'
+		xs: 'text-xs',
+		sm: 'text-sm',
+		md: 'text-base',
+		lg: 'text-lg',
+		xl: 'text-xl'
 	};
 
 	let divClass: string;
@@ -36,9 +36,9 @@
 <div class={divClass}>
 	<span class={color}>
 		{#if value > 0}
-			<span class="text-base leading-4">↑</span>{value}{unit}
+			<span class="text-base leading-4">↑</span>{value.toFixed(2)}{unit}
 		{:else if value < 0}
-			<span class="text-base leading-4">↓</span>{Math.abs(value)}{unit}
+			<span class="text-base leading-4">↓</span>{Math.abs(value).toFixed(2)}{unit}
 		{:else}
 			--
 		{/if}
