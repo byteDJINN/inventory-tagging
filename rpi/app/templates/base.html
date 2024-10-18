@@ -8,12 +8,16 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename = 'assets/css/style.css') }}">
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/pocketbase/js-sdk@master/dist/pocketbase.umd.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
     <script>
+      const pocketbaseUrl = 'https://inventory.bytedjinn.com/db';
+      const pb = new PocketBase(pocketbaseUrl);
       const socket = io();
       socket.on('connect', function () {
-          console.log('Connected');
+          console.log('15 Connected');
       });
+      
       socket.on("change_mode",function(data){
           console.log(data);
           const baseUrl = "http://" + window.location.host;
@@ -46,7 +50,16 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
+<script>
+rpi_id = '000000000000001'
+async function  checkHealth(){
+    rpi_m = {}
+    d = await pb.collection('health').update(rpi_id, {"alive":new Date().toISOString()} )
+    console.log(d)
+    }
+setInterval(checkHealth,5000)
 
+</script>
 </body>
 
 </html>

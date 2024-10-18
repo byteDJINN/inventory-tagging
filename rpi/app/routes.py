@@ -43,15 +43,15 @@ def button_press_api():
 
 @app.route('/capture', methods=['GET'])
 def capture():
-#     path = "/home/csseiot/Desktop/xxx.jpg"
-#     camera.capture_file(path)
+    path = "/home/csseiot/Desktop/xxx.jpg"
+    camera.capture_file(path)
 #     camera.stop_preview()
 #     camera.stop()
     submit_text(socketio)
     
     return jsonify({'message': 'camera stop'})
     
-@app.route('/start-cam', methods=['GET'])
+@app.route('/start-camera', methods=['GET'])
 def start_cam():
     camera.start(show_preview=True)
     camera.set_controls({
@@ -60,10 +60,12 @@ def start_cam():
         })
     return jsonify({'message': 'camera start'})
     
-# @app.route('/stop-cam', methods=['GET'])
-# def stop_cam()
+@app.route('/stop-camera', methods=['GET'])
+def stop_cam():
+    camera.stop_preview()
+    camera.stop()
 
-    return jsonify({'message': 'Capture successfully'})
+    return jsonify({'message': 'Stop successfully'})
 
 
 
