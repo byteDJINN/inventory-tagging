@@ -13,6 +13,7 @@
         <div class="btn-group w-100">
             <button class="btn btn-primary w-50" @click="submitItems">Submit</button>
             <button class="btn btn-primary w-50" @click="clear">Clear</button>
+            <button class="btn btn-primary w-50" @click="add">Add</button>
         </div>
 
         <div class="fs-4 ">
@@ -23,7 +24,7 @@
 
             <div class="mt-3">
                 <label for="product-title">Title:</label>
-                <textarea id="product-title"v-model="productTitle" class="form-control"></textarea>
+                <textarea id="product-title" v-model="productTitle" class="form-control"></textarea>
             </div>
 
             <div class="mt-3">
@@ -40,7 +41,12 @@
                 <label for="product-price">Price:</label>
                 <input type="text" v-model="price" class="form-control">
             </div>
-
+            <div class="btn-group w-100 mt-3">
+                camera panel
+                <button class="btn btn-primary w-50" @click="startCam">start</button>
+                <button class="btn btn-primary w-50" @click="capture">capture</button>
+                <button class="btn btn-primary w-50" @click="stopCam">stop</button>
+            </div>
         </div>
 
 
@@ -49,42 +55,55 @@
         <template v-if="items.length">
             <ul class="list-group" name="todolist" tag="ul">
                 <li v-for="item in items" v-bind:key="item.product_id" class="list-group-item">
-                    <span class="label w-50 ">{{item.title}}-{{item.product_id}} - {{ item.price }}</span>
+                    <span class="label w-50 ">{{item.tagID}} - {{item.name}} - {{item.size}} - {{item.colour}} - {{
+                        item.price }}</span>
                     <button class="btn btn-danger ms-3" @click="deleteItemFromList(item)">
                         delete
                     </button>
-
                 </li>
             </ul>
         </template>
-        <p v-else class="emptylist">Your list is empty.</p>
+        <p v-else class="emptylist">empty.</p>
     </div>
 </div>
 
 <script>
-    const oneProduct = '{"message": "Hello, World!", "product_id": "471823", "colour": "blue", "price": "267.9", "size": "XS", "category": "T-shirts", "brand": "Uniqlo", "title": "Uniqlo U AIRism Cotton Oversized Crew Neck Half Sleeve T-Shirt"}';
     const { createApp, reactive, ref, computed } = Vue
     const items = reactive([])
     const totalPrice = computed(() => {
         return items.reduce((sum, item) => sum + parseFloat(item.price), 0).toFixed(2);
     });
+    const productTitle = ref('')
+    const size = ref('')
+    const colour = ref('')
+    const price = ref('')
+    const productId = ref('')
+    const paragraphs = reactive([])
+    const base_url = 'http://localhost:5000/'
+
     const app = createApp({
         data() {
             return {
-                message: 'Hello asdfsadVue!',
                 items,
                 totalPrice,
-                productId: ref(''),
-                size: ref(''),
-                productTitle: ref(''),
-                price: ref(''),
-                colour: ref(''),
+                productId,
+                size,
+                productTitle,
+                price,
+                colour,
             }
         },
         methods: {
-            greet(event) {
-                const item = JSON.parse(oneProduct)
-                item.product_id = Math.random().toString(10) + 1;
+            add(event) {
+                const item = {
+                    "id": this.productId,
+                    "tagID": this.productId,
+                    "name": this.productTitle,
+                    "size": this.size,
+                    "colour": this.colour,
+                    "price": this.price,
+                    // "timeSold": new Date().toISOString()
+                }
                 this.items.push(item)
             },
             clear(e) {
@@ -94,17 +113,61 @@
                 let index = this.items.indexOf(item)
                 this.items.splice(index, 1);
             },
-            submitItems(e) {
-                console.log(JSON.stringify(this.items))
-                fetch('/products', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(this.items),
-                })
-                this.items.length = 0
+            async startCam(e) {
+                try {
+                    const response = await fetch(base_url + 'start-camera', {
+                        method: 'GET',
+                    });
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    const data = await response.json();
+                    console.log(data);
+                } catch (error) {
+                    console.error('There was a problem with the fetch operation:', error);
+                }
+            },
+            async capture(e) {
+                try {
+                    const response = await fetch(base_url + 'capture', {
+                        method: 'GET',
+                    });
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    const data = await response.json();
+                    console.log(data);
+                } catch (error) {
+                    console.error('There was a problem with the fetch operation:', error);
+                }
+            },
+            async stopCam(e) {
+                try {
+                    const response = await fetch(base_url + 'stop-camera', {
+                        method: 'GET',
+                    });
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    const data = await response.json();
+                    console.log(data);
+                } catch (error) {
+                    console.error('There was a problem with the fetch operation:', error);
+                }
 
+            },
+            async submitItems(e) {
+                try {
+                    // Insert data into PocketBase
+                    for (let i = 0; i < this.items.length; i++) {
+                        let record = await pb.collection('items').create(this.items[i]);
+                    }
+                    this.items.length = 0
+                    // alert('Data inserted successfully!');
+                } catch (error) {
+                    console.error('Error inserting data:', error);
+                    alert('Failed to insert data.');
+                }
             }
 
         }
@@ -115,10 +178,39 @@
     socket.on('connect', function () {
         console.log('Connected');
     });
+
+
+
     socket.on('scan', function (data) {
         console.log(data);
-        items.push(JSON.parse(data))
+        productId.value = data
     });
+
+    socket.on("ocr", function (ocr_data) {
+        
+        console.log("OCR", ocr_data);
+        price.value = ''
+        colour.value = ''
+        size.value = '';
+        const splitData = ocr_data.split('\n').map(item => item.trim());
+        paragraphs.push(...splitData);
+        paragraphs.forEach(paragraph => {
+        paragraph = paragraph.toLowerCase();
+        console.log("data", paragraph)
+            const [key, value] = paragraph.split(':').map(item => item.trim());
+            console.log("key value", key, value)
+            
+            if (key === 'title' || key === 'name') {
+                productTitle.value = value;
+            } else if (key === 'price' || key === 'PRICE') {
+                price.value = value;
+            } else if (key === 'colour' || key === 'color' || key === 'COLOUR'|| key === 'COLOR') {
+                colour.value = value;
+            } else if (key === 'size'||key === 'SIZE') {
+                size.value = value;
+            }
+        });
+    })
 </script>
 {% endraw %}
 {% endblock %}

@@ -16,12 +16,12 @@ btn = Button(3)
  
 socketio = SocketIO(app)
 
-@socketio.on('message')
-def handle_message(message):
-    # Handle incoming message from the client
-    print('Received message:', message)
-    # Perform necessary actions or send a response
-
+# @socketio.on('message')
+# def handle_message(message):
+#     # Handle incoming message from the client
+#     print('Received message:', message)
+#     # Perform necessary actions or send a response
+# 
 @socketio.on('connect')
 def handle_connect():
     # Handle client connection
@@ -83,6 +83,6 @@ thread_scan = threading.Thread(target=tag.start_read_tag_id, args=(socketio,led,
 thread_scan.daemon = True
 thread_scan.start()
 
-thread = threading.Thread(target=listen_button_press, args=(socketio,btn,led))
-thread.daemon = True
-thread.start()
+thread_mode = threading.Thread(target=listen_button_press, args=(socketio,btn,led))
+thread_mode.daemon = True
+thread_mode.start()

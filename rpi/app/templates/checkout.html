@@ -8,7 +8,7 @@
 </h1>
 
 <div class="btn-group">
-    <button class="btn btn-primary" @click="greet">Add</button>
+    <button class="btn btn-primary" @click="checkout">Checkout</button>
     <button class="btn btn-primary" @click="clear">Clear</button>
 </div>
 
@@ -19,7 +19,8 @@
 <template v-if="items.length">
     <ul class="list-group" name="todolist" tag="ul">
         <li v-for="item in items" v-bind:key="item.product_id" class="list-group-item">
-            <span class="label">{{item.title}}-{{item.product_id}} - {{ item.price }}</span>
+            <span class="label">{{item.tagID}} - {{item.name}} - {{item.size}} - {{item.colour}} - {{
+                item.price }}</span>
             <button class="btn btn-danger ms-4" @click="deleteItemFromList(item)">
                 delete
             </button>
@@ -27,18 +28,17 @@
         </li>
     </ul>
 </template>
-<p v-else class="emptylist">Your list is empty.</p>
+<p v-else class="emptylist">empty.</p>
 
-
-<input type="text" v-model="message">
-<input type="checkbox" id="checkbox" checked />
 <script>
-    const oneProduct = '{"message": "Hello, World!", "product_id": "471823", "colour": "blue", "price": "267.9", "size": "XS", "category": "T-shirts", "brand": "Uniqlo", "title": "Uniqlo U AIRism Cotton Oversized Crew Neck Half Sleeve T-Shirt"}';
+
     const { createApp, reactive, ref, computed } = Vue
     const items = reactive([])
+
     const totalPrice = computed(() => {
         return items.reduce((sum, item) => sum + parseFloat(item.price), 0).toFixed(2);
     });
+
     const app = createApp({
         data() {
             return {
@@ -48,10 +48,20 @@
             }
         },
         methods: {
-            greet(event) {
-                const item = JSON.parse(oneProduct)
-                item.product_id = Math.random().toString(10) +1;
-                this.items.push(item)
+            async checkout(event) {
+                let records = pb.collection
+                try {
+                    for (let item of this.items) {
+                        item.timeSold = new Date().toISOString()
+                        let record = await pb.collection('items').update(item.id, item)
+                    }
+                    this.items.length = 0
+                } catch (error) {
+                    alert('Error')
+                    console.error(error);
+                }
+
+
             },
             clear(e) {
                 this.items.length = 0

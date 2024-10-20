@@ -11,49 +11,56 @@
     <span></span>
 </h1>
 
+<h2>
+    Stock Number:
+</h2>
+<p>
+    {{items.length}}
+</p>
+<template v-if="items.length">
+    <ul class="list-group" name="todolist" tag="ul">
+        <li v-for="item in items" v-bind:key="item.product_id" class="list-group-item">
+            <span class="label">{{item.tagID}} - {{item.name}} - {{item.size}} - {{item.colour}} - {{
+                item.price }}</span>
+            <button class="btn btn-danger ms-4" @click="deleteItemFromList(item)">
+                delete
+            </button>
+        </li>
+    </ul>
+</template>
 <script>
-    const oneProduct = '{"message": "Hello, World!", "product_id": "471823", "colour": "blue", "price": "267.9", "size": "XS", "category": "T-shirts", "brand": "Uniqlo", "title": "Uniqlo U AIRism Cotton Oversized Crew Neck Half Sleeve T-Shirt"}';
     const { createApp, reactive, ref, computed } = Vue
     const items = reactive([])
-    const totalPrice = computed(() => {
-        return items.reduce((sum, item) => sum + parseFloat(item.price), 0).toFixed(2);
-    });
+
+
+
+
     const app = createApp({
         data() {
             return {
-                message: 'Hello asdfsadVue!',
                 items,
-                totalPrice
             }
         },
         methods: {
-            greet(event) {
-                const item = JSON.parse(oneProduct)
-                item.product_id = Math.random().toString(10) +1;
-                this.items.push(item)
-            },
-            clear(e) {
-                this.items.length = 0
-            },
-            deleteItemFromList(item) {
-                let index = this.items.indexOf(item)
-                this.items.splice(index, 1);
-            },
 
-        }
+        },
+
     });
     app.mount('#app')
 
 
-    socket.on('scan', function (data) {
-        console.log(data);
-        items.push(JSON.parse(data))
+    socket.on('scan_q', function (data) {
+        items.length = 0;
+        const infos = JSON.parse(data);
+        console.log(infos)
+        for (let i = 0; i < infos.length; i++) {
+            if(!infos[i].timeSold){
+            items.push(infos[i])
+            }
+            
+        }
     });
 </script>
 {% endraw %}
 
 {% endblock %}
-
-
-
-
