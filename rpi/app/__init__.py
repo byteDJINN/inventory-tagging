@@ -12,7 +12,7 @@ app = Flask(__name__)
 # Import routes will trigger the routes to be added to the Flask app
 from app import routes
 
-# from app import sockets
+from app import sockets
 
 
 if __name__ == '__main__':
